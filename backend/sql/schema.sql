@@ -10,13 +10,3 @@ CREATE TABLE movies (
     description TEXT,
     duration_minutes INT NOT NULL
 );
-
-CREATE TABLE bookings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    movie_id INT NOT NULL,
-    booking_date DATETIME NOT NULL,
-
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (movie_id) REFERENCES movies(id)
-);
