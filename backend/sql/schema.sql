@@ -10,3 +10,14 @@ CREATE TABLE movies (
     description TEXT,
     duration_minutes INT NOT NULL
 );
+
+
+INSERT INTO users (name, email)
+VALUES
+    ('Mattias', 'mattias@test.se'),
+    ('Test User', 'test@test.se');
+
+INSERT INTO movies (title, description, duration_minutes)
+VALUES
+    ('Interstellar', 'A science fiction movie about space and time.', 169),
+    ('The Batman', 'A dark superhero movie.', 176);
