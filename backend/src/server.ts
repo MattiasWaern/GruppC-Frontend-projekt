@@ -1,5 +1,7 @@
 import db from './db.js'
+import express from 'express'
 
+// Kan ta bort detta senare
 try {
   const [rows] = await db.query('SELECT NOW() AS now')
 
@@ -8,3 +10,22 @@ try {
 } catch (error) {
   console.error('Kunde inte ansluta till databasen:', error)
 }
+// ---
+
+
+
+const app = express()
+const PORT = 3000;
+
+app.use(express.json())
+
+
+app.get('/api/health', (_req, res) => {
+  res.json({message: 'API fungerar'})
+})
+
+
+app.listen(PORT, () => {
+  console.log(`Backend Körs på http://localhost:${PORT} `)
+})
+
