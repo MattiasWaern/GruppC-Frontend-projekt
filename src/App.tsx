@@ -1,12 +1,8 @@
+
 import './App.css'
 
 function App() {
-
-  return (
-    <>
-     <h1>Hejsan</h1>
-    </>
-  )
+  return <div>App</div>
 }
 
 export default App
