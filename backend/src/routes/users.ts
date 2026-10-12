@@ -103,6 +103,82 @@ router.put('/:id', async (req, res) => {
 });
 
 // POST Uppdatera valda fälten
+router.post("/", async (req, res) => {
+  const { name, email, password, role } = req.body;
+
+  // Validera obligatoriska fält
+  if ( 
+    typeof name !== "string" || !name.trim() ||
+
+    typeof email !== "string" || !email.trim() ||
+    
+    typeof password !== "string" || password.length < 8
+  ) {
+    res.status(400).json({
+      error:
+        "Namn och e-post måste anges. Lösenordet måste vara minst 8 tecken.",
+    });
+    return;
+  }
+
+  if (
+    role !== undefined &&
+    role !== null &&
+    (!Number.isInteger(role) || role < 0)
+  ) {
+    res.status(400).json({
+      error: "Ogiltig roll",
+    });
+    return;
+  }
+
+  try {
+    // Kontrollera om e-postadressen redan används
+    const [existingUsers] = await db.query<User[]>(
+      "SELECT userId FROM users WHERE email = ?",
+      [email.trim()]
+    );
+
+    if (existingUsers.length > 0) {
+      res.status(409).json({
+        error: "E-postadressen används redan",
+      });
+      return;
+    }
+
+    // Hasha lösenordet innan det sparas
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Skapa användaren i databasen
+    const [result] = await db.query<ResultSetHeader>(
+      `INSERT INTO users (name, email, password, role)
+       VALUES (?, ?, ?, ?)`,
+      [
+        name.trim(),
+        email.trim(),
+        hashedPassword,
+        role ?? null,
+      ]
+    );
+
+    // Returnera inte lösenord eller lösenordshash
+    res.status(201).json({
+      message: "Användaren har skapats",
+      user: {
+        userId: result.insertId,
+        name: name.trim(),
+        email: email.trim(),
+        role: role ?? null,
+      },
+    });
+  } catch (error) {
+    console.error("Kunde inte skapa användaren:", error);
+
+    res.status(500).json({
+      error: "Kunde inte skapa användaren",
+    });
+  }
+});
 
 // DELETE Ta bort en användare
 
