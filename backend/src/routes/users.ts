@@ -56,3 +56,33 @@ router.get('/:id', async (req,res) => {
 
 
 // DELETE Ta bort en användare
+
+router.delete('/:id', async (req, res) => {
+    const userId = Number(req.params.id);
+
+    if(!Number.isInteger(userId) || userId <= 0){
+        res.status(400).json({error: 'Ogiltigt användare ID'})
+        return;
+    }
+
+    try{
+        const [results] = await db.query<ResultSetHeader>(`
+                DELETE FROM users WHERE userId = ?    
+            `
+            [userId]
+        );
+
+        if(results.affectedRows === 0){
+            res.status(404).json({error: 'Användaren hittades inte'});
+            return;
+        }
+        res.json({message: 'Användaren har tagits bort'});
+
+    } catch(error){
+        console.error('Kunde inte ta bort användaren', error);
+        res.status(500).json({error: 'Kunte inte ta bort användaren'});
+    }
+})
+
+
+export default router;
