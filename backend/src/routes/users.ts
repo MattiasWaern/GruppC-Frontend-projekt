@@ -21,6 +21,8 @@ router.get('/', async (_req, res) => {
     }
 });
 
+
+// Hämta en specifik Användare med ID
 router.get('/:id', async (req,res) => {
     const userId = Number(req.params.id);
 
@@ -42,5 +44,15 @@ router.get('/:id', async (req,res) => {
             res.status(400).json({error: 'Användaren hittades inte'})
             return;
         }
+
+        res.json(rows[0]);
+    } catch(error){
+        console.error('Kunde inte hämta användaren', error);
+        res.status(500).json({error: 'Kunde inte hämta användaren'});
     }
-})
+});
+
+// PUT Uppdatera användarens uppgifter
+
+
+// DELETE Ta bort en användare
