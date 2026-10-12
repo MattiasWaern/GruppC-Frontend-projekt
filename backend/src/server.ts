@@ -4,6 +4,7 @@ import movieRouter from './routes/movies.js'
 import genreRouter from './routes/genres.js'
 import viewingRouter from './routes/viewings.js'
 import theatersRouter from './routes/theater.js'
+import userRoutes from './routes/users.js'
 
 // Kan ta bort detta senare
 try {
@@ -31,7 +32,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/movies', movieRouter)
 app.use('/api/genres', genreRouter)
 app.use("/api/viewings", viewingRouter);
-
+app.use('/api/users', userRoutes)
 app.use('/api/theaters', theatersRouter)
 
 app.listen(PORT, () => {
