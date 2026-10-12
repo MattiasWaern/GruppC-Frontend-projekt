@@ -2,6 +2,7 @@ import db from './db.js'
 import express from 'express'
 import movieRouter from './routes/movies.js'
 import genreRouter from './routes/genres.js'
+import viewingRouter from './routes/viewings.js'
 
 // Kan ta bort detta senare
 try {
@@ -28,6 +29,8 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/movies', movieRouter)
 app.use('/api/genres', genreRouter)
+app.use("/api/viewings", viewingRouter);
+
 
 app.listen(PORT, () => {
   console.log(`Backend Körs på http://localhost:${PORT} `)
