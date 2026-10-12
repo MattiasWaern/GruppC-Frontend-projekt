@@ -1,68 +1,109 @@
-import { Router } from "express";
-import db from "../db.js";
 
+import { Router } from "express";
+import type { RowDataPacket } from "mysql2";
+import db from "../db.js";
 
 const router = Router();
 
-// Hämta alla filmer med deras genrer
-router.get('/', async (_req, res) => {
-    try {
-        const [rows] = await db.query(`
-            SELECT
-            m.*,
-            GROUP_CONCAT(g.name ORDER BY g.name SEPARATOR ',') AS genre
-            FROM movies m
-            LEFT JOIN movie_genre mg ON m.movieId = mg.movieID
-            LEFT JOIN genre g ON mg.genreId = g.genreId
-            GROUP BY m.movieId
-            ORDER BY m.title
-            `)
+interface MovieRow extends RowDataPacket {
+  movieId: number;
+  title: string;
+  genres: string[] | null;
+}
 
-            res.json(rows)
-    } catch(error){
-        console.error('Kunde inte hämta fimer:', error)
-        res.status(500).json({ error: 'Kunde inte hämta filmer'})
-    }
-})
+// Hämta alla filmer med deras genrer
+router.get("/", async (_req, res) => {
+  try {
+    const [rows] = await db.query<MovieRow[]>(`
+      SELECT
+        m.*,
+        COALESCE(
+          JSON_ARRAYAGG(g.name),
+          JSON_ARRAY()
+        ) AS genres
+      FROM movies m
+      LEFT JOIN movie_genre mg
+        ON m.movieId = mg.movieId
+      LEFT JOIN genre g
+        ON mg.genreId = g.genreId
+      GROUP BY m.movieId
+      ORDER BY m.title
+    `);
+
+    const movies = rows.map((movie) => ({
+      ...movie,
+      genres: movie.genres
+        ? movie.genres.filter(
+            (genre): genre is string => genre !== null
+          )
+        : [],
+    }));
+
+    res.json(movies);
+  } catch (error) {
+    console.error("Kunde inte hämta filmer:", error);
+
+    res.status(500).json({
+      error: "Kunde inte hämta filmer",
+    });
+  }
+});
 
 // Hämta en film med dess genrer
-router.get('/:id', async(req, res) => {
-    const movieId = Number(req.params.id)
+router.get("/:id", async (req, res) => {
+  const movieId = Number(req.params.id);
 
-    if (!Number.isInteger(movieId) ||movieId <= 0){
-        res.status(400).json({error: 'Ogiltigt film-ID'})
-        return
+  if (!Number.isInteger(movieId) || movieId <= 0) {
+    res.status(400).json({
+      error: "Ogiltigt film-ID",
+    });
+    return;
+  }
+
+  try {
+    const [rows] = await db.query<MovieRow[]>(
+      `
+        SELECT
+          m.*,
+          COALESCE(
+            JSON_ARRAYAGG(g.name),
+            JSON_ARRAY()
+          ) AS genres
+        FROM movies m
+        LEFT JOIN movie_genre mg
+          ON m.movieId = mg.movieId
+        LEFT JOIN genre g
+          ON mg.genreId = g.genreId
+        WHERE m.movieId = ?
+        GROUP BY m.movieId
+      `,
+      [movieId]
+    );
+
+    if (rows.length === 0) {
+      res.status(404).json({
+        error: "Filmen hittades inte",
+      });
+      return;
     }
 
+    const movie = rows[0];
 
-    try{
-        const [rows] = await db.query(`
-           SELECT 
-           m.*,
-           GROUP_CONCAT(g.name ORDER BY g.name SEPERATOR (',') AS genres
-           FROM movies m
-           LEFT JOIN movie_genre mg ON m.movieId = mg.movieId
-           LEFT JOIN genre g ON mg.genreId = g.genreId
-           WHERE m.movieId = ?
-           GROUP BY m.movieId
-            `,
-            [movieId],
-        )
+    res.json({
+      ...movie,
+      genres: movie.genres
+        ? movie.genres.filter(
+            (genre): genre is string => genre !== null
+          )
+        : [],
+    });
+  } catch (error) {
+    console.error("Kunde inte hämta filmen:", error);
 
-        const movies = rows as Record<string, unknown>[]
+    res.status(500).json({
+      error: "Kunde inte hämta filmen",
+    });
+  }
+});
 
-        if(movies.length === 0 ) {
-            res.status(404).json({error: 'Filmen hittades inte'})
-            return
-        }
-
-        res.json(movies[0])
-
-
-    } catch(error){
-        console.error('Kunde inte jämta filmen:', error)
-        res.status(500).json({error: 'Kunde inte hämta filmen'})
-    }
-})
-
-export default router
+export default router;
