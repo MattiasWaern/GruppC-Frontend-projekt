@@ -53,7 +53,52 @@ router.get('/:id', async (req,res) => {
 });
 
 // PUT Uppdatera användarens uppgifter
+router.put('/:id', async (req, res) => {
+    const userId = Number(req.params.id);
+    const {name, email, role } = req.body;
 
+    if(!Number.isInteger(userId) ||userId <= 0){
+        res.status(400).json({error: 'Ogiltigt användar ID'});
+        return;
+    }
+
+    if (
+        typeof name !== "string" || !name.trim() ||
+        typeof email !== "string" || !email.trim() ||
+        (role !== null && role !== undefined && !Number.isInteger(role))
+    ) {
+        res.status(400).json({error: 'Ange ett giltigt namn, e-post och roll'});
+        return;
+    }
+
+    try{
+        const [result] = await db.query<ResultSetHeader>(`
+                UPDATE users
+                SET name = ?, email = ?, role = ?
+                WHERE userId = ?
+                `
+                [name.trim(), email.trim(), role ?? null, userId]
+        );
+
+        if (result.affectedRows === 0) {
+        const [rows] = await db.query<User[]>(
+            `SELECT userId FROM users WHERE userId = ?`,
+            [userId]
+        );
+
+        if (rows.length === 0) {
+            res.status(404).json({ error: "Användaren hittades inte" });
+            return;
+        }
+        }
+
+        res.json({ message: "Användaren har uppdaterats" });
+    } catch(error){
+
+    }
+}
+
+)
 
 // DELETE Ta bort en användare
 
