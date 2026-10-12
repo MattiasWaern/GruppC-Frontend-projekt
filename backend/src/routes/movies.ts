@@ -4,7 +4,7 @@ import db from "../db.js";
 
 const router = Router();
 
-
+// Hämta alla filmer med deras genrer
 router.get('/', async (_req, res) => {
     try {
         const [rows] = await db.query(`
@@ -25,7 +25,7 @@ router.get('/', async (_req, res) => {
     }
 })
 
-
+// Hämta en film med dess genrer
 router.get('/:id', async(req, res) => {
     const movieId = Number(req.params.id)
 
