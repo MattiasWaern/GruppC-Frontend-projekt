@@ -1,12 +1,13 @@
 import { Router } from "express";
-import type { RowDataPacket, ResultSetHeader } from "mysql2";
+import bcrypt from "bcrypt";
+import type { ResultSetHeader } from "mysql2";
 import db from "../db.js";
 import type { User } from "../types/user.js";
 
 const router = Router();
 
 
-// Hämta alla användare
+// Hämta alla användard
 router.get('/', async (_req, res) => {
     try{
         const [rows] = await db.query<User[]>(`
@@ -101,7 +102,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// PATCH Uppdatera valda fälten
+// POST Uppdatera valda fälten
 
 // DELETE Ta bort en användare
 
