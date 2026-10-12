@@ -29,7 +29,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/movies', movieRouter)
 app.use('/api/genres', genreRouter)
-app.use('/api/theater', theatersRouter)
+app.use('/api/theaters', theatersRouter)
 
 app.listen(PORT, () => {
   console.log(`Backend Körs på http://localhost:${PORT} `)
