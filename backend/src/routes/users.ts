@@ -93,12 +93,15 @@ router.put('/:id', async (req, res) => {
         }
 
         res.json({ message: "Användaren har uppdaterats" });
-    } catch(error){
-
+    } catch (error) {
+        console.error("Kunde inte uppdatera användaren:", error);
+        res.status(500).json({
+        error: "Kunde inte uppdatera användaren",
+        });
     }
-}
+});
 
-)
+// PATCH Uppdatera valda fälten
 
 // DELETE Ta bort en användare
 
