@@ -1,10 +1,10 @@
 import './App.css'
+import AboutUs from '../backend/src/routes/AboutUs.tsx';
 
 function App() {
-
   return (
     <>
-     <h1>Hejsan</h1>
+      <AboutUs />
     </>
   )
 }
