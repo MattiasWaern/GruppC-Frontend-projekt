@@ -17,6 +17,11 @@ router.get('/', async (_req, res) => {
             GROUP BY m.movieId
             ORDER BY m.title
             `)
+
+            res.json(rows)
+    } catch(error){
+        console.error('Kunde inte hämta fimer:', error)
+        res.status(500).json({ error: 'Kunde inte hämta filmer'})
     }
 })
 
