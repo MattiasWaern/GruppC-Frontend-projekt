@@ -1,12 +1,9 @@
+
 import './App.css'
+import AboutUs from './AboutUs'
 
 function App() {
-
-  return (
-    <>
-     <h1>Hejsan</h1>
-    </>
-  )
+  return <AboutUs />
 }
 
 export default App
