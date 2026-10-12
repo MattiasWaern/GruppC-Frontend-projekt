@@ -1,5 +1,7 @@
 import db from './db.js'
 import express from 'express'
+import movieRouter from './routes/movies.js'
+import genreRouter from './routes/genres.js'
 
 // Kan ta bort detta senare
 try {
@@ -24,6 +26,8 @@ app.get('/api/health', (_req, res) => {
   res.json({message: 'API fungerar'})
 })
 
+app.use('/api/movies', movieRouter)
+app.use('/api/genres', genreRouter)
 
 app.listen(PORT, () => {
   console.log(`Backend Körs på http://localhost:${PORT} `)
