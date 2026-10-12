@@ -10,7 +10,7 @@ router.get('/', async (_req, res) => {
         const [rows] = await db.query(`
             SELECT
             m.*,
-            GROUP_CONCAT(g.name ORDER BY g.name SEPARATOR ',') AS genres
+            GROUP_CONCAT(g.name ORDER BY g.name SEPARATOR ',') AS genre
             FROM movies m
             LEFT JOIN movie_genre mg ON m.movieId = mg.movieID
             LEFT JOIN genre g ON mg.genreId = g.genreId
@@ -39,7 +39,7 @@ router.get('/:id', async(req, res) => {
         const [rows] = await db.query(`
            SELECT 
            m.*,
-           GROUP_CONCAT(g.name ORDER BY g.name SEPERATOR '.') AS genres
+           GROUP_CONCAT(g.name ORDER BY g.name SEPERATOR (',') AS genres
            FROM movies m
            LEFT JOIN movie_genre mg ON m.movieId = mg.movieId
            LEFT JOIN genre g ON mg.genreId = g.genreId
