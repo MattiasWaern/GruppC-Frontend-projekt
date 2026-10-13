@@ -9,7 +9,7 @@ const router = Router();
 router.get("/", async (_req, res) => {
   try {
     const [rows] = await db.query<tickettype[]>(`
-      SELECT ticketTypeId, price, ticket_child, ticket_adult, ticket_senior
+      SELECT ticketTypeId, price, name
       FROM tickettype
       ORDER BY ticketTypeId
     `);
@@ -34,7 +34,7 @@ router.get("/:id", async (req, res) => {
 
   try {
     const [rows] = await db.query<tickettype[]>(
-      `SELECT ticketTypeId, price, ticket_child, ticket_adult, ticket_senior
+      `SELECT ticketTypeId, price, name
        FROM tickettype
        WHERE ticketTypeId = ?`,
       [ticketTypeId]
@@ -56,29 +56,26 @@ router.get("/:id", async (req, res) => {
 
 // POST Skapa en ny biljettyp
 router.post("/", async (req, res) => {
-  const { price, ticket_child, ticket_adult, ticket_senior } = req.body;
+  const { price, name } = req.body;
 
   if (
-    ![price, ticket_child, ticket_adult, ticket_senior].every(
-      (value) =>
-        typeof value === "number" &&
-        Number.isFinite(value) &&
-        Number.isInteger(value) &&
-        value >= 0
-    )
+    typeof price !== "number" ||
+    !Number.isFinite(price) ||
+    price < 0 ||
+    typeof name !== "string" ||
+    name.trim().length === 0
   ) {
     res.status(400).json({
-      error: "Alla priser måste vara giltiga, positiva heltal eller noll.",
+      error: "Ange ett giltigt pris och ett namn för biljettypen.",
     });
     return;
   }
 
   try {
     const [result] = await db.query<ResultSetHeader>(
-      `INSERT INTO tickettype
-       (price, ticket_child, ticket_adult, ticket_senior)
-       VALUES (?, ?, ?, ?)`,
-      [price, ticket_child, ticket_adult, ticket_senior]
+      `INSERT INTO tickettype (price, name)
+       VALUES (?, ?)`,
+      [price, name.trim()]
     );
 
     res.status(201).json({
@@ -86,9 +83,7 @@ router.post("/", async (req, res) => {
       tickettype: {
         ticketTypeId: result.insertId,
         price,
-        ticket_child,
-        ticket_adult,
-        ticket_senior,
+        name: name.trim(),
       },
     });
   } catch (error) {
