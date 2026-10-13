@@ -24,5 +24,33 @@ router.get('/', async (_req, res) => {
 })
 
 
+// GET  Hämta en specifik biljettTyp
+router.get("/:id", async (req, res) => {
+  const ticketTypeId = Number(req.params.id);
+
+  if (!Number.isInteger(ticketTypeId) || ticketTypeId <= 0) {
+    res.status(400).json({ error: "Ogiltigt Biljett typ" });
+    return;
+  }
+
+  try {
+    const [rows] = await db.query<TicketType[]>(
+      `SELECT ticketTypeId, price, ticket_child, ticket_adult, ticket_senior
+       FROM users
+       WHERE userId = ?`,
+      [ticketTypeId]
+    );
+
+    if (rows.length === 0) {
+      res.status(404).json({ error: "Biljett typ hittades inte" });
+      return;
+    }
+
+    res.json(rows[0]);
+  } catch (error) {
+    console.error("Kunde inte hämta Biljett typ:", error);
+    res.status(500).json({ error: "Kunde inte hämta Biljett typ" });
+  }
+});
 
 export default router;
