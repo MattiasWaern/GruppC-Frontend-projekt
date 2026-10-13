@@ -88,4 +88,56 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+router.post("/", async (req, res) => {
+  const { userId, viewingId, seatIds } = req.body as NewBooking;
+
+  if (
+    !Number.isInteger(userId) ||
+    userId <= 0 ||
+    !Number.isInteger(viewingId) ||
+    viewingId <= 0 ||
+    !Array.isArray(seatIds) ||
+    seatIds.length === 0 ||
+    !seatIds.every((seatId) => Number.isInteger(seatId) && seatId > 0) ||
+    new Set(seatIds).size !== seatIds.length
+  ) {
+    res.status(400).json({
+      error: "userId, viewingId och seatIds (unika heltal) krävs",
+    });
+    return;
+  }
+
+router.delete("/:id", async (req, res) => {
+  const bookingId = Number(req.params.id);
+
+  if (!Number.isInteger(bookingId) || bookingId <= 0) {
+    res.status(400).json({
+      error: "Ogiltigt boknings-ID",
+    });
+    return;
+  }
+
+  try {
+    const [result] = await db.query<ResultSetHeader>(
+      "DELETE FROM booking WHERE bookingId = ?",
+      [bookingId]
+    );
+
+    if (result.affectedRows === 0) {
+      res.status(404).json({
+        error: "Bokningen hittades inte",
+      });
+      return;
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("Kunde inte avboka:", error);
+
+    res.status(500).json({
+      error: "Kunde inte avboka",
+    });
+  }
+});
+
 export default router;
