@@ -7,3 +7,9 @@ export interface Booking {
     booking_date: string
     seats: string
 }
+
+export interface NewBooking {
+    userId: number
+    viewingId: number
+    seatIds: number[]
+}
