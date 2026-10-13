@@ -1,7 +1,10 @@
-export interface TicketType {
+import type { RowDataPacket } from "mysql2"
+
+
+export interface TicketType extends RowDataPacket  {
     ticketTypeId: number
     price: number
-    ticket_child: string
-    ticket_adult: string
-    ticket_senior: string
+    ticket_child: number
+    ticket_adult: number
+    ticket_senior: number
 }
