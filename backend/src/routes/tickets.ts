@@ -1,72 +1,102 @@
 import { Router } from "express";
-import type { TicketType } from "../types/ticketType.js";
+import type { tickettype } from "../types/ticketType.js";
 import type { ResultSetHeader } from "mysql2";
 import db from "../db.js";
 
-
 const router = Router();
 
+// GET Hämta alla biljettyper
+router.get("/", async (_req, res) => {
+  try {
+    const [rows] = await db.query<tickettype[]>(`
+      SELECT ticketTypeId, price, ticket_child, ticket_adult, ticket_senior
+      FROM tickettype
+      ORDER BY ticketTypeId
+    `);
 
-// Hämtar alla biljett typer
-router.get('/', async (_req, res) => {
-    try{
-        const [rows] = await db.query<[TicketType]>(`
-                SELECT ticketTypeId, price, ticket_child, ticket_adult, ticket_senior
-                FROM ticketType
-                ORDER BY ticketTypeId
-            `);
-        res.json(rows)
+    res.json(rows);
+  } catch (error) {
+    console.error("Kunde inte hämta alla biljettyper:", error);
+    res.status(500).json({
+      error: "Kunde inte hämta alla biljettyper",
+    });
+  }
+});
 
-    } catch(error){
-        console.error('Kunde inte hämta alla biljett typer');
-        res.status(500).json({error: 'Kunde inte hämta alla biljett typer'})
-    }
-})
-
-
-// GET  Hämta en specifik biljettTyp
+// GET Hämta en specifik biljettyp
 router.get("/:id", async (req, res) => {
   const ticketTypeId = Number(req.params.id);
 
   if (!Number.isInteger(ticketTypeId) || ticketTypeId <= 0) {
-    res.status(400).json({ error: "Ogiltigt Biljett typ" });
+    res.status(400).json({ error: "Ogiltigt biljett-ID" });
     return;
   }
 
   try {
-    const [rows] = await db.query<TicketType[]>(
+    const [rows] = await db.query<tickettype[]>(
       `SELECT ticketTypeId, price, ticket_child, ticket_adult, ticket_senior
-       FROM ticketType
+       FROM tickettype
        WHERE ticketTypeId = ?`,
       [ticketTypeId]
     );
 
     if (rows.length === 0) {
-      res.status(404).json({ error: "Biljett typ hittades inte" });
+      res.status(404).json({ error: "Biljettypen hittades inte" });
       return;
     }
 
     res.json(rows[0]);
   } catch (error) {
-    console.error("Kunde inte hämta Biljett typ:", error);
-    res.status(500).json({ error: "Kunde inte hämta Biljett typ" });
+    console.error("Kunde inte hämta biljettypen:", error);
+    res.status(500).json({
+      error: "Kunde inte hämta biljettypen",
+    });
   }
 });
 
-
-// POST Skapa en ny biljet typ
+// POST Skapa en ny biljettyp
 router.post("/", async (req, res) => {
-  const { ticketTypeId, price } = req.body;
+  const { price, ticket_child, ticket_adult, ticket_senior } = req.body;
 
   if (
-    typeof ticketTypeId !== "number" ||
-    typeof price !== "number" 
+    ![price, ticket_child, ticket_adult, ticket_senior].every(
+      (value) =>
+        typeof value === "number" &&
+        Number.isFinite(value) &&
+        Number.isInteger(value) &&
+        value >= 0
+    )
   ) {
     res.status(400).json({
-      error: "ID och PRIS måste anges för att kunna skapa ny biljett typ. ",
+      error: "Alla priser måste vara giltiga, positiva heltal eller noll.",
     });
     return;
   }
 
+  try {
+    const [result] = await db.query<ResultSetHeader>(
+      `INSERT INTO tickettype
+       (price, ticket_child, ticket_adult, ticket_senior)
+       VALUES (?, ?, ?, ?)`,
+      [price, ticket_child, ticket_adult, ticket_senior]
+    );
+
+    res.status(201).json({
+      message: "Biljettypen har skapats",
+      tickettype: {
+        ticketTypeId: result.insertId,
+        price,
+        ticket_child,
+        ticket_adult,
+        ticket_senior,
+      },
+    });
+  } catch (error) {
+    console.error("Kunde inte skapa biljettypen:", error);
+    res.status(500).json({
+      error: "Kunde inte skapa biljettypen",
+    });
+  }
 });
+
 export default router;
