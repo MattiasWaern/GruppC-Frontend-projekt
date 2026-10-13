@@ -1,5 +1,6 @@
 import db from './db.js'
 import express from 'express'
+import bookingsRouter from "./routes/bookings.js";
 
 // Kan ta bort detta senare
 try {
@@ -24,6 +25,7 @@ app.get('/api/health', (_req, res) => {
   res.json({message: 'API fungerar'})
 })
 
+app.use("/api/bookings", bookingsRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend Körs på http://localhost:${PORT} `)

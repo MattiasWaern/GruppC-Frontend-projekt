@@ -107,6 +107,64 @@ router.post("/", async (req, res) => {
     return;
   }
 
+  // DUBBELBOKNINGEN
+  try {
+    const [existing] = await db.query<RowDataPacket[]>(
+      "SELECT seats FROM booking WHERE viewingId = ?",
+      [viewingId]
+    );
+
+    const takenSeats = new Set(
+      existing.flatMap((row) => parseSeats(row.seats as string))
+    );
+
+    const conflicts = seatIds.filter((seatId) => takenSeats.has(seatId));
+
+    if (conflicts.length > 0) {
+      res.status(409).json({
+        error: "Platsen är redan bokad",
+        seatIds: conflicts,
+      });
+      return;
+    }
+
+    const bookingNumber = `B-${Date.now()}`;
+    const bookingDate = new Date().toISOString();
+
+    const [result] = await db.query<ResultSetHeader>(
+      `
+        INSERT INTO booking
+          (userId, viewingId, booking_number, booking_confirmation, booking_date, seats)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `,
+      [userId, viewingId, bookingNumber, "confirmed", bookingDate, seatIds.join(",")]
+    );
+
+    res.status(201).json({
+      bookingId: result.insertId,
+      userId,
+      viewingId,
+      booking_number: bookingNumber,
+      booking_confirmation: "confirmed",
+      booking_date: bookingDate,
+      seatIds,
+    });
+  } catch (error) {
+    if ((error as { errno?: number }).errno === 1452) {
+      res.status(400).json({
+        error: "Användaren finns inte",
+      });
+      return;
+    }
+
+    console.error("Kunde inte skapa bokningen:", error);
+
+    res.status(500).json({
+      error: "Kunde inte skapa bokningen",
+    });
+  }
+});
+
 router.delete("/:id", async (req, res) => {
   const bookingId = Number(req.params.id);
 
