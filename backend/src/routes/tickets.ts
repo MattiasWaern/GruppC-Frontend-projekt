@@ -36,8 +36,8 @@ router.get("/:id", async (req, res) => {
   try {
     const [rows] = await db.query<TicketType[]>(
       `SELECT ticketTypeId, price, ticket_child, ticket_adult, ticket_senior
-       FROM users
-       WHERE userId = ?`,
+       FROM ticketType
+       WHERE ticketTypeId = ?`,
       [ticketTypeId]
     );
 
@@ -53,4 +53,20 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+
+// POST Skapa en ny biljet typ
+router.post("/", async (req, res) => {
+  const { ticketTypeId, price } = req.body;
+
+  if (
+    typeof ticketTypeId !== "number" ||
+    typeof price !== "number" 
+  ) {
+    res.status(400).json({
+      error: "ID och PRIS måste anges för att kunna skapa ny biljett typ. ",
+    });
+    return;
+  }
+
+});
 export default router;
