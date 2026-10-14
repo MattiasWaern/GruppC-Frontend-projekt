@@ -1,11 +1,11 @@
-import { RowDataPacket } from "mysql2"
+import type { RowDataPacket } from "mysql2";
 
 export interface Viewing extends RowDataPacket {
-    viewing: string
-    viewing_id: string
-    viewing_date: Date
-    viewing_start_time: string
-    movieId: number
-    eventId: number
-    theaterId: number
+    viewingId: number;
+    viewing: string;
+    viewing_date: Date;
+    viewing_start_time: string;
+    movieId: number | null;
+    eventId: number | null;
+    theaterId: number | null;
 }

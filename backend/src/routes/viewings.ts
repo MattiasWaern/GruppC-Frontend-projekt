@@ -31,6 +31,64 @@ router.get('/:id/seats', async(req, res) => {
     res.status(400).json({error: 'Ogiltigt visnings ID'});
     return;
   }
+
+
+  try{
+    const [viewings] = await db.query<RowDataPacket[]>(`
+        SELECT theaterID
+        FROM viewing
+        WHERE viewingId = ?
+      `,
+    [viewingId]
+  );
+
+  if(viewings.length === 0){
+    res.status(400).json({error: 'Visningen hittades inte'});
+    return;
+  }
+
+  const theaterId = viewings[0].theaterId;
+
+  const [seats] = await db.query<RowDataPacket[]>(`
+      SELECT seatId, theaterId, \`row\`, seatnumber
+      FROM seats
+      WHERE theaterId = ?
+      ORDER BY \`row\`, seatnumber
+    `,
+    [theaterId]
+  );
+
+  const [bookings] = await db.query<RowDataPacket[]>(`
+      SELECT seats
+      FROM booking
+      WHERE viewingId = ?
+        AND booking_confirmation = 'confirmed'
+    `,
+    [viewingId]
+  );  
+
+  const bookedSeatsIds = new Set<number>(
+    bookings.flatMap((booking) => 
+      String(bookings.seats ?? "")
+    .split(",")
+    .filter((id: string) => id.trim() !== "")
+    .map(Number)
+    .filter(
+      (id: number) => Number.isInteger(id) && id > 0
+      )
+    )
+  );
+
+  res.json(
+    seats.map((seat) => ({
+      ...seat,
+      booked: bookedSeatsIds.has(Number(seat.seatId)),
+    }))
+  )
+
+  } catch(error){
+
+  }
 })
 
 
@@ -49,7 +107,7 @@ router.get("/:id", async (req, res) => {
       `
       SELECT *
       FROM viewing
-      WHERE viewing_id = ?
+      WHERE viewingId = ?
       `,
       [viewingId]
     );
