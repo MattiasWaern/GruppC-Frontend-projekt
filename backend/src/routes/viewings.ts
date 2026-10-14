@@ -1,21 +1,12 @@
 import { Router } from "express";
-import type { RowDataPacket } from "mysql2";
 import db from "../db.js";
+import type { Viewing } from "../types/viewing.js";
 
 const router = Router();
 
-interface ViewingRow extends RowDataPacket {
-  viewing_id: number;
-  viewing_date: string;
-  viewing_start_time: string;
-  movieId: number;
-  eventId: number;
-  theaterId: number;
-}
-
 router.get("/", async (_req, res) => {
   try {
-    const [rows] = await db.query<ViewingRow[]>(`
+    const [rows] = await db.query<Viewing[]>(`
       SELECT *
       FROM viewing
       ORDER BY viewing_date, viewing_start_time
@@ -41,7 +32,7 @@ router.get("/:id", async (req, res) => {
   }
 
   try {
-    const [rows] = await db.query <ViewingRow[] > (
+    const [rows] = await db.query <Viewing[] > (
       `
       SELECT *
       FROM viewing
