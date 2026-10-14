@@ -1,6 +1,7 @@
 import { Router } from "express";
 import db from "../db.js";
 import type { Viewing } from "../types/viewing.js";
+import type { RowDataPacket } from "mysql2";
 
 const router = Router();
 
@@ -20,6 +21,18 @@ router.get("/", async (_req, res) => {
     });
   }
 });
+
+
+router.get('/:id/seats', async(req, res) => {
+  const viewingId = Number(req.params.id);
+
+
+  if(!Number.isInteger(viewingId) || viewingId <= 0){
+    res.status(400).json({error: 'Ogiltigt visnings ID'});
+    return;
+  }
+})
+
 
 router.get("/:id", async (req, res) => {
   const viewingId = Number(req.params.id);
