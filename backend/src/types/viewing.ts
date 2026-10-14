@@ -1,9 +1,11 @@
-export interface Viewing {
-    viewing: string
-    viewing_id: string
-    viewing_date: Date
-    viewing_start_time: string
-    movieId: number
-    eventId: number
-    theaterId: number
+import type { RowDataPacket } from "mysql2";
+
+export interface Viewing extends RowDataPacket {
+    viewingId: number;
+    viewing: string;
+    viewing_date: Date;
+    viewing_start_time: string;
+    movieId: number | null;
+    eventId: number | null;
+    theaterId: number | null;
 }

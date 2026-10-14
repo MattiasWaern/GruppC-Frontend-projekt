@@ -9,6 +9,7 @@ import rolesRouter from "./routes/roles.js";
 import userRoutes from './routes/users.js'
 import ticketRoutes from './routes/tickets.js'
 import aboutUsRouter from './routes/aboutUs.js'
+import seatsRouter from './routes/seats.js'
 
 // Kan ta bort detta senare
 try {
@@ -43,6 +44,7 @@ app.use('/api/theaters', theatersRouter)
 app.use('/api/tickets', ticketRoutes)
 
 app.use('/api/about-us', aboutUsRouter)
+app.use('/api/seats', seatsRouter)
 app.listen(PORT, () => {
   console.log(`Backend Körs på http://localhost:${PORT} `)
 })
