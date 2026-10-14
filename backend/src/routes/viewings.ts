@@ -35,7 +35,7 @@ router.get('/:id/seats', async(req, res) => {
 
   try{
     const [viewings] = await db.query<RowDataPacket[]>(`
-        SELECT theaterID
+        SELECT theaterId
         FROM viewing
         WHERE viewingId = ?
       `,
@@ -43,7 +43,7 @@ router.get('/:id/seats', async(req, res) => {
   );
 
   if(viewings.length === 0){
-    res.status(400).json({error: 'Visningen hittades inte'});
+    res.status(404).json({error: 'Visningen hittades inte'});
     return;
   }
 
@@ -69,7 +69,7 @@ router.get('/:id/seats', async(req, res) => {
 
   const bookedSeatsIds = new Set<number>(
     bookings.flatMap((booking) => 
-      String(bookings.seats ?? "")
+      String(booking.seats ?? "")
     .split(",")
     .filter((id: string) => id.trim() !== "")
     .map(Number)
@@ -84,10 +84,11 @@ router.get('/:id/seats', async(req, res) => {
       ...seat,
       booked: bookedSeatsIds.has(Number(seat.seatId)),
     }))
-  )
+  );
 
   } catch(error){
-
+    console.error("Kunde inte hämta visningens stolar:", error);
+    res.status(500).json({ error: "Kunde inte hämta visningens stolar",});
   }
 })
 
