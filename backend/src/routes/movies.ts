@@ -1,20 +1,14 @@
-
 import { Router } from "express";
 import type { RowDataPacket } from "mysql2";
 import db from "../db.js";
+import { Movie } from "../types/movie.js";
 
 const router = Router();
-
-interface MovieRow extends RowDataPacket {
-  movieId: number;
-  title: string;
-  genres: string[] | null;
-}
 
 // Hämta alla filmer med deras genrer
 router.get("/", async (_req, res) => {
   try {
-    const [rows] = await db.query<MovieRow[]>(`
+    const [rows] = await db.query<Movie[]>(`
       SELECT
         m.*,
         COALESCE(
@@ -61,7 +55,7 @@ router.get("/:id", async (req, res) => {
   }
 
   try {
-    const [rows] = await db.query<MovieRow[]>(
+    const [rows] = await db.query<Movie[]>(
       `
         SELECT
           m.*,

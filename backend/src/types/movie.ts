@@ -1,4 +1,6 @@
-export interface Movie {
+import { RowDataPacket } from "mysql2"
+
+export interface Movie extends RowDataPacket {
     movieId: number
     title: string
     description: string
@@ -7,4 +9,5 @@ export interface Movie {
     cover_picture: string
     background_color: string
     age_limit: number
+    genres: string[] | null;
 }
