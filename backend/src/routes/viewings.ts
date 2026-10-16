@@ -15,7 +15,6 @@ router.get("/", async (_req, res) => {
     res.json(rows);
   } catch (error) {
     console.error("Kunde inte hämta visningar:", error);
-
     res.status(500).json({
       error: "Kunde inte hämta visningar",
     });
@@ -23,74 +22,116 @@ router.get("/", async (_req, res) => {
 });
 
 
-router.get('/:id/seats', async(req, res) => {
+router.get("/:id/seats", async (req, res) => {
   const viewingId = Number(req.params.id);
 
-
-  if(!Number.isInteger(viewingId) || viewingId <= 0){
-    res.status(400).json({error: 'Ogiltigt visnings ID'});
+  if (!Number.isInteger(viewingId) || viewingId <= 0) {
+    res.status(400).json({ error: "Ogiltigt visnings-ID" });
     return;
   }
 
+  try {
+    const [viewings] = await db.query<RowDataPacket[]>(
+      `SELECT theaterId
+       FROM viewing
+       WHERE viewingId = ?`,
+      [viewingId]
+    );
 
-  try{
-    const [viewings] = await db.query<RowDataPacket[]>(`
-        SELECT theaterId
-        FROM viewing
-        WHERE viewingId = ?
+    if (viewings.length === 0) {
+      res.status(404).json({ error: "Visningen hittades inte" });
+      return;
+    }
+
+    const theaterId = Number(viewings[0].theaterId);
+
+    const [seats] = await db.query<RowDataPacket[]>(
+      `
+      SELECT
+        s.seatId,
+        s.theaterId,
+        s.\`row\`,
+        s.seatnumber,
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM bokad_stol bs
+            INNER JOIN booking b
+              ON b.bookingId = bs.bookingId
+            WHERE bs.seatId = s.seatId
+              AND b.viewingId = ?
+              AND b.booking_confirmation = 'confirmed'
+          ) THEN 1
+          ELSE 0
+        END AS isBooked
+      FROM seats s
+      WHERE s.theaterId = ?
+      ORDER BY s.\`row\`, s.seatnumber
       `,
-    [viewingId]
-  );
+      [viewingId, theaterId]
+    );
 
-  if(viewings.length === 0){
-    res.status(404).json({error: 'Visningen hittades inte'});
+    res.json(seats);
+  } catch (error) {
+    console.error("Kunde inte hämta visningens stolar:", error);
+    res.status(500).json({
+      error: "Kunde inte hämta visningens stolar",
+    });
+  }
+});
+
+
+router.get("/:id/availability", async (req, res) => {
+  const viewingId = Number(req.params.id);
+
+  if (!Number.isInteger(viewingId) || viewingId <= 0) {
+    res.status(400).json({ error: "Ogiltigt visnings-ID" });
     return;
   }
 
-  const theaterId = viewings[0].theaterId;
+  try {
+    const [viewings] = await db.query<RowDataPacket[]>(
+      `SELECT theaterId FROM viewing WHERE viewingId = ?`,
+      [viewingId]
+    );
 
-  const [seats] = await db.query<RowDataPacket[]>(`
-      SELECT seatId, theaterId, \`row\`, seatnumber
-      FROM seats
-      WHERE theaterId = ?
-      ORDER BY \`row\`, seatnumber
-    `,
-    [theaterId]
-  );
+    if (viewings.length === 0) {
+      res.status(404).json({ error: "Visningen hittades inte" });
+      return;
+    }
 
-  const [bookings] = await db.query<RowDataPacket[]>(`
-      SELECT seats
-      FROM booking
-      WHERE viewingId = ?
-        AND booking_confirmation = 'confirmed'
-    `,
-    [viewingId]
-  );  
+    const theaterId = Number(viewings[0].theaterId);
 
-  const bookedSeatsIds = new Set<number>(
-    bookings.flatMap((booking) => 
-      String(booking.seats ?? "")
-    .split(",")
-    .filter((id: string) => id.trim() !== "")
-    .map(Number)
-    .filter(
-      (id: number) => Number.isInteger(id) && id > 0
-      )
-    )
-  );
+    const [stats] = await db.query<RowDataPacket[]>(
+      `
+      SELECT 
+        (SELECT COUNT(*) FROM seats WHERE theaterId = ?) AS totalSeats,
+        (SELECT COUNT(DISTINCT bs.seatId) 
+         FROM bokad_stol bs 
+         INNER JOIN booking b ON b.bookingId = bs.bookingId 
+         WHERE b.viewingId = ? AND b.booking_confirmation = 'confirmed'
+        ) AS bookedSeats
+      `,
+      [theaterId, viewingId]
+    );
 
-  res.json(
-    seats.map((seat) => ({
-      ...seat,
-      booked: bookedSeatsIds.has(Number(seat.seatId)),
-    }))
-  );
+    const totalSeats = Number(stats[0].totalSeats);
+    const bookedSeats = Number(stats[0].bookedSeats);
+    const availableSeats = totalSeats - bookedSeats;
 
-  } catch(error){
-    console.error("Kunde inte hämta visningens stolar:", error);
-    res.status(500).json({ error: "Kunde inte hämta visningens stolar",});
+    res.json({
+      viewingId,
+      totalSeats,
+      bookedSeats,
+      availableSeats,
+    });
+  } catch (error) {
+    console.error("Kunde inte hämta stolstatistik:", error);
+    res.status(500).json({
+      error: "Kunde inte hämta stolstatistik",
+    });
   }
-})
+});
 
 
 router.get("/:id", async (req, res) => {
@@ -104,7 +145,7 @@ router.get("/:id", async (req, res) => {
   }
 
   try {
-    const [rows] = await db.query <Viewing[] > (
+    const [rows] = await db.query<Viewing[]>(
       `
       SELECT *
       FROM viewing
@@ -117,13 +158,11 @@ router.get("/:id", async (req, res) => {
       res.status(404).json({
         error: "Visningen hittades inte",
       });
-
       return;
     }
     res.json(rows[0]);
   } catch (error) {
     console.error("Kunde inte hämta visningen:", error);
-
     res.status(500).json({
       error: "Kunde inte hämta visningen",
     });

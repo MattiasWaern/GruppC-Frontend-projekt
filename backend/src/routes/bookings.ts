@@ -1,24 +1,35 @@
 import { Router } from "express";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import db from "../db.js";
-import type { Booking, NewBooking } from "../types/booking.js";
+import type { Booking } from "../types/booking.js";
 
 const router = Router();
 
 interface BookingRow extends Booking, RowDataPacket {}
 
-function parseSeats(seats: string): number[] {
+interface TicketInput {
+  seatId: number;
+  ticketTypeId: number;
+}
+
+function parseSeats(seats: string | null): number[] {
+  if (!seats) return [];
+
   return seats
     .split(",")
     .map((seat) => Number(seat))
-    .filter((seat) => Number.isInteger(seat));
+    .filter((seat) => Number.isInteger(seat) && seat > 0);
 }
 
 function toResponse(row: BookingRow) {
   const { seats, ...rest } = row;
-  return { ...rest, seatIds: parseSeats(seats) };
+  return {
+    ...rest,
+    seatIds: parseSeats(seats),
+  };
 }
 
+// GET: Hämta alla bokningar, eller filtrera på userId.
 router.get("/", async (req, res) => {
   const userIdParam = req.query.userId;
 
@@ -29,9 +40,7 @@ router.get("/", async (req, res) => {
       const userId = Number(userIdParam);
 
       if (!Number.isInteger(userId) || userId <= 0) {
-        res.status(400).json({
-          error: "Ogiltigt användar-ID",
-        });
+        res.status(400).json({ error: "Ogiltigt användar-ID" });
         return;
       }
 
@@ -48,20 +57,45 @@ router.get("/", async (req, res) => {
     res.json(rows.map(toResponse));
   } catch (error) {
     console.error("Kunde inte hämta bokningar:", error);
-
-    res.status(500).json({
-      error: "Kunde inte hämta bokningar",
-    });
+    res.status(500).json({ error: "Kunde inte hämta bokningar" });
   }
 });
 
+// GET: Hämta en bokning med stolar, biljettyp och pris per stol.
+router.get("/:id/tickets", async (req, res) => {
+  const bookingId = Number(req.params.id);
+
+  if (!Number.isInteger(bookingId) || bookingId <= 0) {
+    res.status(400).json({ error: "Ogiltigt boknings-ID" });
+    return;
+  }
+
+  try {
+    const [rows] = await db.query<RowDataPacket[]>(
+      `SELECT bs.seatId, s.\`row\`, s.seatnumber,
+              tt.ticketTypeId, tt.name AS ticketType, tt.price
+       FROM bokad_stol bs
+       INNER JOIN seats s ON s.seatId = bs.seatId
+       INNER JOIN tickettype tt ON tt.ticketTypeId = bs.ticketTypeId
+       WHERE bs.bookingId = ?
+       ORDER BY s.\`row\`, s.seatnumber`,
+      [bookingId]
+    );
+
+    const totalPrice = rows.reduce((sum, r) => sum + Number(r.price), 0);
+    res.json({ bookingId, tickets: rows, totalPrice });
+  } catch (error) {
+    console.error("Kunde inte hämta biljetter:", error);
+    res.status(500).json({ error: "Kunde inte hämta biljetter" });
+  }
+});
+
+// GET: Hämta en specifik bokning.
 router.get("/:id", async (req, res) => {
   const bookingId = Number(req.params.id);
 
   if (!Number.isInteger(bookingId) || bookingId <= 0) {
-    res.status(400).json({
-      error: "Ogiltigt boknings-ID",
-    });
+    res.status(400).json({ error: "Ogiltigt boknings-ID" });
     return;
   }
 
@@ -72,58 +106,135 @@ router.get("/:id", async (req, res) => {
     );
 
     if (rows.length === 0) {
-      res.status(404).json({
-        error: "Bokningen hittades inte",
-      });
+      res.status(404).json({ error: "Bokningen hittades inte" });
       return;
     }
 
     res.json(toResponse(rows[0]));
   } catch (error) {
     console.error("Kunde inte hämta bokningen:", error);
-
-    res.status(500).json({
-      error: "Kunde inte hämta bokningen",
-    });
+    res.status(500).json({ error: "Kunde inte hämta bokningen" });
   }
 });
 
+// POST: Skapa en bokning. Varje stol får sin egen biljettyp.
+//
+// Nytt format:  { userId, viewingId, tickets: [{ seatId, ticketTypeId }, ...] }
+// Gammalt format (fungerar fortfarande): { userId, viewingId, seatIds, ticketTypeId }
 router.post("/", async (req, res) => {
-  const { userId, viewingId, seatIds } = req.body as NewBooking;
+  const body = req.body as {
+    userId?: number;
+    viewingId?: number;
+    tickets?: TicketInput[];
+    seatIds?: number[];
+    ticketTypeId?: number;
+  };
+
+  const userId = body.userId;
+  const viewingId = body.viewingId;
+
+  let tickets: TicketInput[] = [];
+
+  if (Array.isArray(body.tickets)) {
+    tickets = body.tickets;
+  } else if (Array.isArray(body.seatIds)) {
+    tickets = body.seatIds.map((seatId) => ({
+      seatId,
+      ticketTypeId: body.ticketTypeId as number,
+    }));
+  }
 
   if (
+    typeof userId !== "number" ||
     !Number.isInteger(userId) ||
     userId <= 0 ||
+    typeof viewingId !== "number" ||
     !Number.isInteger(viewingId) ||
     viewingId <= 0 ||
-    !Array.isArray(seatIds) ||
-    seatIds.length === 0 ||
-    !seatIds.every((seatId) => Number.isInteger(seatId) && seatId > 0) ||
-    new Set(seatIds).size !== seatIds.length
+    tickets.length === 0 ||
+    !tickets.every(
+      (t) =>
+        t &&
+        Number.isInteger(t.seatId) &&
+        t.seatId > 0 &&
+        Number.isInteger(t.ticketTypeId) &&
+        t.ticketTypeId > 0
+    ) ||
+    new Set(tickets.map((t) => t.seatId)).size !== tickets.length
   ) {
     res.status(400).json({
-      error: "userId, viewingId och seatIds (unika heltal) krävs",
+      error:
+        "userId, viewingId och tickets (unika seatId med ticketTypeId) krävs",
     });
     return;
   }
 
-  // DUBBELBOKNINGEN
+  const seatIds = tickets.map((t) => t.seatId);
+  const ticketTypeIds = [...new Set(tickets.map((t) => t.ticketTypeId))];
+
+  const conn = await db.getConnection();
+
   try {
-    const [existing] = await db.query<RowDataPacket[]>(
-      "SELECT seats FROM booking WHERE viewingId = ?",
+    await conn.beginTransaction();
+
+    // Låser visningen så att två bokningar för samma visning inte körs samtidigt.
+    const [viewings] = await conn.query<RowDataPacket[]>(
+      "SELECT theaterId FROM viewing WHERE viewingId = ? FOR UPDATE",
       [viewingId]
     );
 
-    const takenSeats = new Set(
-      existing.flatMap((row) => parseSeats(row.seats as string))
+    if (viewings.length === 0) {
+      await conn.rollback();
+      res.status(404).json({ error: "Visningen hittades inte" });
+      return;
+    }
+
+    // Hämta priser för alla biljettyper som används.
+    const [ticketTypes] = await conn.query<RowDataPacket[]>(
+      `SELECT ticketTypeId, price FROM tickettype
+       WHERE ticketTypeId IN (${ticketTypeIds.map(() => "?").join(",")})`,
+      ticketTypeIds
     );
 
-    const conflicts = seatIds.filter((seatId) => takenSeats.has(seatId));
+    if (ticketTypes.length !== ticketTypeIds.length) {
+      await conn.rollback();
+      res.status(400).json({ error: "En eller flera biljettyper finns inte" });
+      return;
+    }
 
-    if (conflicts.length > 0) {
+    const priceById = new Map<number, number>(
+      ticketTypes.map((r) => [Number(r.ticketTypeId), Number(r.price)])
+    );
+
+    const seatPlaceholders = seatIds.map(() => "?").join(",");
+
+    const [seats] = await conn.query<RowDataPacket[]>(
+      `SELECT seatId FROM seats
+       WHERE theaterId = ? AND seatId IN (${seatPlaceholders})`,
+      [viewings[0].theaterId, ...seatIds]
+    );
+
+    if (seats.length !== seatIds.length) {
+      await conn.rollback();
+      res.status(400).json({
+        error: "En eller flera stolar tillhör inte visningens salong",
+      });
+      return;
+    }
+
+    const [existing] = await conn.query<RowDataPacket[]>(
+      `SELECT bs.seatId
+       FROM bokad_stol bs
+       INNER JOIN booking b ON b.bookingId = bs.bookingId
+       WHERE b.viewingId = ? AND bs.seatId IN (${seatPlaceholders})`,
+      [viewingId, ...seatIds]
+    );
+
+    if (existing.length > 0) {
+      await conn.rollback();
       res.status(409).json({
-        error: "Platsen är redan bokad",
-        seatIds: conflicts,
+        error: "En eller flera stolar är redan bokade",
+        seatIds: existing.map((row) => Number(row.seatId)),
       });
       return;
     }
@@ -131,70 +242,116 @@ router.post("/", async (req, res) => {
     const bookingNumber = `B-${Date.now()}`;
     const bookingDate = new Date().toISOString();
 
-    const [result] = await db.query<ResultSetHeader>(
-      `
-        INSERT INTO booking
-          (userId, viewingId, booking_number, booking_confirmation, booking_date, seats)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `,
-      [userId, viewingId, bookingNumber, "confirmed", bookingDate, seatIds.join(",")]
+    const [result] = await conn.query<ResultSetHeader>(
+      `INSERT INTO booking
+       (userId, viewingId, booking_number, booking_confirmation, booking_date, seats)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        userId,
+        viewingId,
+        bookingNumber,
+        "confirmed",
+        bookingDate,
+        seatIds.join(","),
+      ]
+    );
+
+    const bookingId = result.insertId;
+
+    // En rad per stol, var och en med sin egen biljettyp.
+    await conn.query<ResultSetHeader>(
+      "INSERT INTO bokad_stol (bookingId, seatId, ticketTypeId) VALUES ?",
+      [tickets.map((t) => [bookingId, t.seatId, t.ticketTypeId])]
+    );
+
+    await conn.commit();
+
+    const totalPrice = tickets.reduce(
+      (sum, t) => sum + (priceById.get(t.ticketTypeId) ?? 0),
+      0
     );
 
     res.status(201).json({
-      bookingId: result.insertId,
+      bookingId,
       userId,
       viewingId,
       booking_number: bookingNumber,
       booking_confirmation: "confirmed",
       booking_date: bookingDate,
       seatIds,
+      tickets: tickets.map((t) => ({
+        ...t,
+        price: priceById.get(t.ticketTypeId),
+      })),
+      totalPrice,
     });
   } catch (error) {
-    if ((error as { errno?: number }).errno === 1452) {
+    try {
+      await conn.rollback();
+    } catch (rollbackError) {
+      console.error("Kunde inte återställa transaktionen:", rollbackError);
+    }
+
+    const errno = (error as { errno?: number }).errno;
+
+    if (errno === 1452) {
       res.status(400).json({
-        error: "Användaren finns inte",
+        error: "Användaren, visningen, stolen eller biljettypen finns inte",
       });
       return;
     }
 
     console.error("Kunde inte skapa bokningen:", error);
-
-    res.status(500).json({
-      error: "Kunde inte skapa bokningen",
-    });
+    res.status(500).json({ error: "Kunde inte skapa bokningen" });
+  } finally {
+    conn.release();
   }
 });
 
+// DELETE: Ta bort en bokning och dess stolar.
 router.delete("/:id", async (req, res) => {
   const bookingId = Number(req.params.id);
 
   if (!Number.isInteger(bookingId) || bookingId <= 0) {
-    res.status(400).json({
-      error: "Ogiltigt boknings-ID",
-    });
+    res.status(400).json({ error: "Ogiltigt boknings-ID" });
     return;
   }
 
+  const conn = await db.getConnection();
+
   try {
-    const [result] = await db.query<ResultSetHeader>(
+    await conn.beginTransaction();
+
+    // bokad_stol saknar ON DELETE CASCADE, så stolarna tas bort först.
+    await conn.query<ResultSetHeader>(
+      "DELETE FROM bokad_stol WHERE bookingId = ?",
+      [bookingId]
+    );
+
+    const [result] = await conn.query<ResultSetHeader>(
       "DELETE FROM booking WHERE bookingId = ?",
       [bookingId]
     );
 
     if (result.affectedRows === 0) {
-      res.status(404).json({
-        error: "Bokningen hittades inte",
-      });
+      await conn.rollback();
+      res.status(404).json({ error: "Bokningen hittades inte" });
       return;
     }
 
+    await conn.commit();
     res.status(204).send();
   } catch (error) {
-    console.error("Kunde inte avboka:", error);
+    try {
+      await conn.rollback();
+    } catch (rollbackError) {
+      console.error("Kunde inte återställa transaktionen:", rollbackError);
+    }
 
-    res.status(500).json({
-      error: "Kunde inte avboka",
-    });
+    console.error("Kunde inte avboka:", error);
+    res.status(500).json({ error: "Kunde inte avboka" });
+  } finally {
+    conn.release();
   }
 });
 
