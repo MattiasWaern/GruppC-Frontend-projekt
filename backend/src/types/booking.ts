@@ -5,18 +5,16 @@ export interface Booking {
     booking_number: string;
     booking_confirmation: string;
     booking_date: string;
+    seats: string | null; // tas bort när kolumnen droppas (bokad_stol ersätter den)
 }
 
-export interface BookedSeat {
-    bokadStolId: number;
-    bookingId: number;
+export interface TicketInput {
     seatId: number;
     ticketTypeId: number;
-    viewingId: number;
-  }
-  
-  export interface NewBooking {
+}
+
+export interface NewBooking {
     userId: number;
     viewingId: number;
-    seats: { seatId: number; ticketTypeId: number }[];
-  }
+    tickets: TicketInput[];
+}
