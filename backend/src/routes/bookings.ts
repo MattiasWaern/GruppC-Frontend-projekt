@@ -259,9 +259,10 @@ router.post("/", async (req, res) => {
     const bookingId = result.insertId;
 
     // En rad per stol, var och en med sin egen biljettyp.
+    // viewingId behövs eftersom bokad_stol har UNIQUE (viewingId, seatId).
     await conn.query<ResultSetHeader>(
-      "INSERT INTO bokad_stol (bookingId, seatId, ticketTypeId) VALUES ?",
-      [tickets.map((t) => [bookingId, t.seatId, t.ticketTypeId])]
+      "INSERT INTO bokad_stol (bookingId, seatId, ticketTypeId, viewingId) VALUES ?",
+      [tickets.map((t) => [bookingId, t.seatId, t.ticketTypeId, viewingId])]
     );
 
     await conn.commit();
@@ -294,6 +295,12 @@ router.post("/", async (req, res) => {
 
     const errno = (error as { errno?: number }).errno;
 
+    // 1062 = dubblett: UNIQUE (viewingId, seatId) i bokad_stol stoppade dubbelbokning
+    if (errno === 1062) {
+      res.status(409).json({ error: "En eller flera stolar är redan bokade" });
+      return;
+    }
+
     if (errno === 1452) {
       res.status(400).json({
         error: "Användaren, visningen, stolen eller biljettypen finns inte",
@@ -322,7 +329,7 @@ router.delete("/:id", async (req, res) => {
   try {
     await conn.beginTransaction();
 
-    // bokad_stol saknar ON DELETE CASCADE, så stolarna tas bort först.
+    // Stolarna tas bort först. Databasen har också ON DELETE CASCADE, så det är en extra säkerhet.
     await conn.query<ResultSetHeader>(
       "DELETE FROM bokad_stol WHERE bookingId = ?",
       [bookingId]
