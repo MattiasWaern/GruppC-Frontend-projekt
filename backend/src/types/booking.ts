@@ -1,15 +1,22 @@
 export interface Booking {
-    bookingId: number
-    userId: number
-    viewingId: number
-    booking_number: string
-    booking_confirmation: string
-    booking_date: string
-    seats: string
+    bookingId: number;
+    userId: number;
+    viewingId: number;
+    booking_number: string;
+    booking_confirmation: string;
+    booking_date: string;
 }
 
-export interface NewBooking {
-    userId: number
-    viewingId: number
-    seatIds: number[]
-}
+export interface BookedSeat {
+    bokadStolId: number;
+    bookingId: number;
+    seatId: number;
+    ticketTypeId: number;
+    viewingId: number;
+  }
+  
+  export interface NewBooking {
+    userId: number;
+    viewingId: number;
+    seats: { seatId: number; ticketTypeId: number }[];
+  }
