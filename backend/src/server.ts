@@ -1,5 +1,17 @@
 import db from './db.js'
+import express from 'express'
+import bookingsRouter from "./routes/bookings.js";
+import movieRouter from './routes/movies.js'
+import genreRouter from './routes/genres.js'
+import viewingRouter from './routes/viewings.js'
+import theatersRouter from './routes/theater.js'
+import rolesRouter from "./routes/roles.js";
+import userRoutes from './routes/users.js'
+import ticketRoutes from './routes/tickets.js'
+import aboutUsRouter from './routes/aboutUs.js'
+import seatsRouter from './routes/seats.js'
 
+// Kan ta bort detta senare
 try {
   const [rows] = await db.query('SELECT NOW() AS now')
 
@@ -8,3 +20,32 @@ try {
 } catch (error) {
   console.error('Kunde inte ansluta till databasen:', error)
 }
+// ---
+
+
+
+const app = express()
+const PORT = 3000;
+
+app.use(express.json())
+
+
+app.get('/api/health', (_req, res) => {
+  res.json({message: 'API fungerar'})
+})
+
+app.use("/api/bookings", bookingsRouter);
+app.use('/api/movies', movieRouter)
+app.use('/api/genres', genreRouter)
+app.use("/api/viewings", viewingRouter);
+app.use("/api/admin/roles", rolesRouter);
+app.use('/api/users', userRoutes)
+app.use('/api/theaters', theatersRouter)
+app.use('/api/tickets', ticketRoutes)
+
+app.use('/api/about-us', aboutUsRouter)
+app.use('/api/seats', seatsRouter)
+app.listen(PORT, () => {
+  console.log(`Backend Körs på http://localhost:${PORT} `)
+})
+
