@@ -4,6 +4,20 @@ import { Link, useParams } from "react-router-dom";
 import type { Movie } from "../types/movie";
 import "../styles/detaljsSida.css";
 
+
+function toCssBackground(value?: string) {
+  if (!value) return undefined;
+
+  // gradient (innehåller "(") eller hex som redan har #
+  if (value.includes("(") || value.startsWith("#")) {
+    return value;
+  }
+
+  // ren hex utan #, t.ex. "121212"
+  return `#${value}`;
+}
+
+
 export function MovieDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
@@ -69,7 +83,7 @@ export function MovieDetailsPage() {
   }
 
   return (
-    <main className="movie-details" style={{ backgroundColor: `#${movie?.background_color}` }} >
+    <main className="movie-details"style={{ background: toCssBackground(movie.background_color) }} >
       <Link to="/movies" className="back-link">
          Tillbaka till filmer
       </Link>
