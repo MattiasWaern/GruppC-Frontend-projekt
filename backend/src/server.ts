@@ -3,6 +3,7 @@ import express from 'express'
 import bookingsRouter from "./routes/bookings.js";
 import movieRouter from './routes/movies.js'
 import genreRouter from './routes/genres.js'
+import eventRouter from './routes/event.js'
 import viewingRouter from './routes/viewings.js'
 import theatersRouter from './routes/theater.js'
 import rolesRouter from "./routes/roles.js";
@@ -37,6 +38,7 @@ app.get('/api/health', (_req, res) => {
 app.use("/api/bookings", bookingsRouter);
 app.use('/api/movies', movieRouter)
 app.use('/api/genres', genreRouter)
+app.use('/api/events', eventRouter)
 app.use("/api/viewings", viewingRouter);
 app.use("/api/admin/roles", rolesRouter);
 app.use('/api/users', userRoutes)
