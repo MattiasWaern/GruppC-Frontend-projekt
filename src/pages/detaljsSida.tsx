@@ -60,8 +60,8 @@ export function MovieDetailsPage() {
   }
 
   if (error || !movie) {
-    return (
-      <main className="movie-details">
+    return ( 
+      <main className="movie-details" style={{ background: movie?.background_color }} >
         <p>{error || "Filmen hittades inte."}</p>
         <Link to="/">Tillbaka till startsidan</Link>
       </main>
