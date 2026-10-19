@@ -71,7 +71,7 @@ export function MovieDetailsPage() {
   return (
     <main className="movie-details">
       <Link to="/" className="back-link">
-        ← Tillbaka till filmer
+         Tillbaka till filmer
       </Link>
 
       <section className="movie-hero">
@@ -114,7 +114,7 @@ export function MovieDetailsPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                Se filmens trailer ↗
+                Se filmens trailer
               </a>
             </section>
           )}
