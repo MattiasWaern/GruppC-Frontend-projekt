@@ -52,4 +52,66 @@ export function MovieDetailsPage(){
 
         return() => controller.abort();
     }, [id]);
+
+    if(loading){
+        return <p className="movie-status">Laddar Film...</p>;
+    }
+
+
+    if(error || !movie){
+        return(
+            <main className="movie-detalis">
+                <p>{error ||"Filmen kunde inte hittas"}</p>
+                <Link to="/">Tillbaka till startsidan</Link>
+
+
+                <section className="movie-hero">
+                    {movie?.poster && (
+                        <img
+                        className="movie-poster"
+                        src={movie?.poster}
+                        alt{`Affisch för ${movie?.title}`}
+                        />
+                    )}
+
+                    <div className="movie-info">
+                        <p className="movie-eyebrow">FILMVISARNA</p>
+
+                        <h1>{movie?.title}</h1>
+
+                        <div className="movie-meta">
+                            <span>{movie?.duration_minutes} min</span>
+                            <span>{movie?.age_limit}+ år</span>
+                        </div>
+
+                        <div className="movie-genres">
+                             {movie?.genres.map((genre) => (
+                                <span className="genre-tag" key={genre}>
+                                    {genre}
+                                </span>
+                             ))}
+                        </div>
+                         
+                             
+                        <h2>Om Filmen</h2>
+                        <p className="movie-description">
+                            {movie?.description}
+                        </p>
+
+                             {movie?.trailer && (
+                                <section className="trailer-section">
+                                    <h2>Trailer</h2>
+                                    <a
+                                    href={movie.trailer}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    ></a>
+                                    Se filmens Trailer
+                                </section>
+                             )}
+                    </div>
+                </section>
+            </main>
+        )
+    }
 }

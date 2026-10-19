@@ -3,9 +3,9 @@ export interface Movie {
   title: string;
   description: string;
   duration_minutes: number;
-  trailer: string | null;
-  poster: string | null;
-  background_color: string | null;
+  trailer: string;
+  poster: string;
+  background_color: string;
   age_limit: number;
   genres: string[];
 }
