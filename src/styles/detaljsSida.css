@@ -1,0 +1,130 @@
+
+.movie-details {
+  min-height: 100vh;
+  padding: 32px 6%;
+  background: #101114;
+  color: #f5f5f5;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 32px;
+  color: #c5c5c5;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: #ffffff;
+}
+
+.movie-hero {
+  display: grid;
+  grid-template-columns: minmax(180px, 280px) 1fr;
+  gap: 40px;
+  align-items: start;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.movie-poster {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 16px 40px #0008;
+}
+
+.movie-info h1 {
+  margin: 0 0 16px;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+}
+
+.movie-eyebrow {
+  color: #ff4545;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.movie-meta,
+.movie-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.movie-meta span,
+.genre-tag {
+  padding: 7px 12px;
+  border: 1px solid #383a40;
+  border-radius: 20px;
+  color: #d8d8d8;
+  font-size: 0.9rem;
+}
+
+.movie-info h2,
+.screenings-section h2,
+.trailer-section h2 {
+  margin-top: 28px;
+}
+
+.movie-description {
+  max-width: 650px;
+  color: #c5c5c5;
+  line-height: 1.8;
+  white-space: pre-line;
+}
+
+.book-button {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 14px 24px;
+  border-radius: 8px;
+  background: #ed252e;
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.book-button:hover {
+  background: #c91b24;
+}
+
+.screenings-section,
+.trailer-section {
+  max-width: 1100px;
+  margin: 56px auto 0;
+}
+
+.screenings-placeholder {
+  padding: 24px;
+  border: 1px solid #303239;
+  border-radius: 12px;
+  background: #18191e;
+  color: #c5c5c5;
+}
+
+.trailer-section a {
+  color: #ff6565;
+}
+
+.movie-status {
+  padding: 48px;
+  color: white;
+  text-align: center;
+}
+
+@media (max-width: 650px) {
+  .movie-details {
+    padding: 24px 5%;
+  }
+
+  .movie-hero {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .movie-poster {
+    width: min(70%, 260px);
+  }
+}
