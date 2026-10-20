@@ -4,19 +4,17 @@ import { Link, useParams } from "react-router-dom";
 import type { Movie } from "../types/movie";
 import "../styles/detaljsSida.css";
 
-
 function toCssBackground(value?: string) {
   if (!value) return undefined;
 
-  // gradient (innehåller "(") eller hex som redan har #
+  // Gradient eller hex med #
   if (value.includes("(") || value.startsWith("#")) {
     return value;
   }
 
-  // ren hex utan #, t.ex. "121212"
+  // Hex utan #
   return `#${value}`;
 }
-
 
 export function MovieDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -74,66 +72,116 @@ export function MovieDetailsPage() {
   }
 
   if (error || !movie) {
-    return ( 
+    return (
       <main className="movie-details">
         <p>{error || "Filmen hittades inte."}</p>
-        <Link to="/">Tillbaka till startsidan</Link>
+        <Link to="/movies" className="back-link">
+          Tillbaka till filmer
+        </Link>
       </main>
     );
   }
 
   return (
-    <main className="movie-details"style={{ background: toCssBackground(movie.background_color) }} >
-      <Link to="/movies" className="back-link">
-         Tillbaka till filmer
-      </Link>
-
-      <section className="movie-hero">
-        {movie.poster && (
-          <img
-            className="movie-poster"
-            src={movie.poster}
-            alt={`Affisch för ${movie.title}`}
-          />
-        )}
-
-        <div className="movie-info">
-          <p className="movie-eyebrow">FILMVISARNA</p>
-
+    <main className="movie-details">
+      <div
+        className="movie-content"
+        style={{
+          background: toCssBackground(movie.background_color),
+        }}
+      >
+        <section className="movie-intro">
           <h1>{movie.title}</h1>
 
-          <div className="movie-meta">
-            <span>{movie.duration_minutes} min</span>
-            <span>{movie.age_limit}+ år</span>
-          </div>
-
-          <div className="movie-genres">
-            {movie.genres?.map((genre) => (
-              <span className="genre-tag" key={genre}>
-                {genre}
-              </span>
-            ))}
-          </div>
-
-          <h2>Om filmen</h2>
-          <p className="movie-description">
-            {movie.description}
+          <p className="movie-subtitle">
+            {movie.duration_minutes} min Från {movie.age_limit} år
           </p>
 
-          {movie.trailer && (
-            <section className="trailer-section">
-              <h2>Trailer</h2>
-              <a
-                href={movie.trailer}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Se filmens trailer
-              </a>
-            </section>
+          {movie.genres?.length > 0 && (
+            <p className="movie-genre-line">
+              {movie.genres.join(", ")}
+            </p>
           )}
-        </div>
-      </section>
+        </section>
+
+        <section className="movie-trailer">
+          {movie.poster ? (
+            <img
+              className="movie-poster"
+              src={movie.poster}
+              alt={`Affisch för ${movie.title}`}
+            />
+          ) : (
+            <div className="movie-poster-placeholder">
+              {movie.title}
+            </div>
+          )}
+
+          {movie.trailer && (
+            <a
+              className="trailer-play"
+              href={movie.trailer}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Se trailer för ${movie.title}`}
+            >
+              <span className="play-icon">▶</span>
+              <span>Se trailer</span>
+            </a>
+          )}
+        </section>
+
+        <p className="movie-description">
+          {movie.description}
+        </p>
+
+        <section className="ticket-panel" id="biljetter">
+          <h2>Biljetter</h2>
+
+          <div className="date-options">
+            {[0, 1, 2, 3].map((day) => {
+              const date = new Date();
+              date.setDate(date.getDate() + day);
+
+              return (
+                <div className="date-option" key={day}>
+                  <span>
+                    {date.toLocaleDateString("sv-SE", {
+                      weekday: "short",
+                    })}
+                  </span>
+                  <strong>{date.getDate()}</strong>
+                  <span>
+                    {date.toLocaleDateString("sv-SE", {
+                      month: "short",
+                    })}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <h3>Salonger</h3>
+
+          <div className="theater-options">
+            <button type="button" className="theater-button">
+              Stora salongen
+            </button>
+
+            <button type="button" className="theater-button">
+              Lilla salongen
+            </button>
+
+            <Link to="/movies" className="choose-seats-button">
+              Välj platser
+            </Link>
+          </div>
+
+          <p className="ticket-note">
+            Välj datum och salong för att fortsätta.
+          </p>
+        </section>
+      </div>
     </main>
   );
 }
