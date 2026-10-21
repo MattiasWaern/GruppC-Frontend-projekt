@@ -1,8 +1,10 @@
+
 import Header from '../components/Header';
 import HeroSection from '../components/HeroSection';
 import MovieSection from '../components/MovieSection';
 import BookingBanner from '../components/BookingBanner';
 import MobileNavigation from '../components/MobileNavigation';
+import Footer from '../components/Footer';
 
 export default function HomePage() {
   return (
@@ -10,11 +12,15 @@ export default function HomePage() {
       <Header />
       <MobileNavigation />
 
-<main className="box-border min-w-0 pt-20 pb-20 md:ml-56 md:pb-0">
-  <HeroSection />
-  <MovieSection />
-  <BookingBanner />
-</main>
+      <main className="box-border min-w-0 pt-20 pb-20 md:ml-56 md:pb-0">
+        <HeroSection />
+        <MovieSection />
+        <BookingBanner />
+      </main>
+
+      <div className="pb-20 md:pb-0">
+        <Footer />
+      </div>
     </div>
   );
 }
