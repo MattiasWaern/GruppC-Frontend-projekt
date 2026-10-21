@@ -27,7 +27,7 @@ export default function MobileNavigation() {
 
         md:inset-x-auto md:left-0
         md:top-20 md:bottom-0
-        md:w-24 lg:w-56
+        md:w-56
         md:flex-col md:items-stretch md:justify-start
         md:gap-3 md:border-r md:border-t-0
         md:p-4
