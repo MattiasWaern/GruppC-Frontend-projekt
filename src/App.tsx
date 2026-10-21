@@ -3,6 +3,7 @@ import HeroSection from './components/HeroSection'
 import MovieSection from './components/MovieSection'
 import BookingBanner from './components/BookingBanner'
 import MobileNavigation from './components/MobileNavigation'
+import Footer from './components/Footer'
 
 
 export default function App() {
@@ -15,9 +16,8 @@ export default function App() {
         <BookingBanner />
       </main>
 
-      <footer className='border-t border-[#806b36] px-4 py-6 text-center text-sm text-gray-400'>
-        <p>© 2026 Filmvisarna</p>
-         <p className="mt-2">Upplev film tillsammans.</p>
+      <footer> 
+      <Footer />
       </footer>
 
        <MobileNavigation />
