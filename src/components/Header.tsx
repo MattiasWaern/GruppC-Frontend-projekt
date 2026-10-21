@@ -1,6 +1,6 @@
 export default function Header() {
   return (
-    <header className="border-b border-[#806b36] bg-[#1d1d1d]">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#806b36] bg-[#1d1d1d]">
       <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between gap-4 px-4 md:px-8">
 
 
@@ -29,7 +29,7 @@ export default function Header() {
           Sök efter filmer, genre, datum...
         </label>
 
-        <div className="flex items-center rounded-full borrder border-[#806b36] bg-[#262626] px-4 transition focus-within:border-[#e5ca7a]">
+        <div className="flex items-center rounded-full border border-[#806b36] bg-[#262626] px-4 transition focus-within:border-[#e5ca7a]">
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
