@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router";
 import type { Movie } from "../types/movie";
 import "../styles/detaljsSida.css";
 
@@ -16,7 +16,7 @@ function toCssBackground(value?: string) {
   return `#${value}`;
 }
 
-export function MovieDetailsPage() {
+export default function MovieDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
   const [movie, setMovie] = useState<Movie | null>(null);
