@@ -90,7 +90,7 @@ export function MovieDetailsPage() {
   return (
     <main className="min-h-screen bg-[#121212] font-serif text-[#e4ce83]">
       <div
-        className="mx-auto min-h-screen w-full max-w-[1800px] px-[5%] py-6 sm:px-8 lg:px-12 lg:py-[30px]"
+        className="mx-auto min-h-screen w-full max-w-[800px] px-[5%] py-6 sm:px-8 lg:px-12 lg:py-[30px]"
         style={{
           background: toCssBackground(movie.background_color),
         }}
@@ -101,18 +101,18 @@ export function MovieDetailsPage() {
             {movie.title}
           </h1>
 
-          <p className="my-1 text-sm text-[#e4ce83]">
+          <p className="my-1 text-xl text-[#e4ce83]">
             {movie.duration_minutes} min Från {movie.age_limit} år
           </p>
 
           {movie.genres?.length > 0 && (
-            <p className="my-[5px] text-xs text-[#d9bb79]">
+            <p className="my-[5px] text-l text-[#d9bb79]">
               {movie.genres.join(", ")}
             </p>
           )}
         </section>
 
-        {/* Stor film bild med trailerknapp */}
+        {/* film bild med trailerknapp */}
         <section className="relative mx-auto mb-4 aspect-video w-full max-w-[1800px] overflow-hidden rounded-[15px] border-2 border-[#e5232d] bg-[#171717] shadow-lg">
           {movie.poster ? (
             <img
@@ -143,11 +143,11 @@ export function MovieDetailsPage() {
         </section>
 
         {/* Filmbeskrivning */}
-        <p className="mx-auto mt-4 max-w-[560px] whitespace-pre-line text-[0.88rem] leading-[1.55] text-[#e4ce83]">
+        <p className="mx-auto mt-4 max-w-[560px] whitespace-pre-line text-s leading-[1.55] text-[#e4ce83]">
           {movie.description}
         </p>
 
-        {/* Biljettpanel */}
+        {/* Biljettpanel FÅR KOPPLA DETTA TILL RÄTT DATUM SENARE*/}
         <section
           id="biljetter"
           className="mx-auto mt-14 w-full max-w-[480px] rounded-xl border border-[#6c5a31] bg-[#191919] p-[18px] font-sans text-[#e4ce83] sm:mt-[55px] sm:p-6"
