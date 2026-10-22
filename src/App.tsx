@@ -5,6 +5,7 @@ import MovieSection from './components/MovieSection'
 import BookingBanner from './components/BookingBanner'
 import MobileNavigation from './components/MobileNavigation'
 import MovieDetails from './pages/detaljsSida'
+import Footer from './components/Footer'
 
 function HomePage() {
   return (
@@ -33,6 +34,9 @@ export default function App() {
           <p>© 2026 Filmvisarna</p>
           <p className="mt-2">Upplev film tillsammans.</p>
         </footer>
+      <footer> 
+      <Footer />
+      </footer>
 
         <MobileNavigation />
       </div>

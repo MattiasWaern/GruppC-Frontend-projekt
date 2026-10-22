@@ -1,4 +1,3 @@
-
 import {
   House,
   Search,
@@ -28,7 +27,7 @@ export default function MobileNavigation() {
 
         md:inset-x-auto md:left-0
         md:top-20 md:bottom-0
-        md:w-24 lg:w-56
+        md:w-56
         md:flex-col md:items-stretch md:justify-start
         md:gap-3 md:border-r md:border-t-0
         md:p-4
@@ -38,15 +37,16 @@ export default function MobileNavigation() {
         <a
           key={href}
           href={href}
-          className="
+          className={`
             flex flex-col items-center gap-1
             rounded-lg px-2 py-2
             text-[#e5ca7a]
             transition-colors hover:bg-[#333333]
+            ${label === 'Sök' ? 'md:hidden' : ''}
 
             md:flex-row md:justify-start
             md:gap-3 md:px-2 lg:px-3
-          "
+          `}
         >
           <Icon
             aria-hidden="true"
