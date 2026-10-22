@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 
 type TicketCounts = {
     adult: number;
@@ -278,6 +278,57 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
         });
     };
 
+    const handleBooking = async () => {
+    setError('');
+
+    const ticketTypeIds = {
+        adult: 1,
+        child: 2,
+        senior: 3,
+    };
+
+    const tickets = selectedSeatIds.map((seatId, index) => {
+        const ticketTypes = [
+            ...Array(ticketCounts.adult).fill(ticketTypeIds.adult),
+            ...Array(ticketCounts.child).fill(ticketTypeIds.child),
+            ...Array(ticketCounts.senior).fill(ticketTypeIds.senior),
+        ];
+
+        return {
+            seatId,
+            ticketTypeId: ticketTypes[index],
+        };
+    });
+
+    try {
+        const response = await fetch('/api/bookings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId,
+                viewingId,
+                tickets,
+            }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Kunde inte skapa bokningen.');
+        }
+
+        navigate(`/booking-confirmation/${data.bookingId}`);
+    } catch (err) {
+        setError(
+            err instanceof Error
+                ? err.message
+                : 'Ett fel uppstod när bokningen skulle skapas.'
+        );
+    }
+};
+
     const rows = Array.from(
         new Set(seats.map((seat) => seat.rowNumber))
     ).sort((a, b) => a - b);
@@ -316,7 +367,7 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
                             ).map(([type, label]) => (
                                 <div
                                     key={type}
-                                    className="flex min-h-[44px] items-center justify-between gap-3 font-serif text-base sm:text-lg"
+                                    className="flex min-h-11 items-center justify-between gap-3 font-serif text-base sm:text-lg"
                                 >
                                     <span className="min-w-0 flex-1">
                                         {label}
@@ -389,17 +440,17 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
 
                     <div className="justify-self-center">
                         {loadingMovie ? (
-                            <div className="flex aspect-[2/3] w-36 items-center justify-center rounded-lg bg-[#1b1b1b] text-sm text-zinc-400 lg:w-40">
+                            <div className="flex aspect-2/3 w-36 items-center justify-center rounded-lg bg-[#1b1b1b] text-sm text-zinc-400 lg:w-40">
                                 Laddar film...
                             </div>
                         ) : movie?.posterUrl ? (
                             <img
                                 src={movie.posterUrl}
                                 alt={`Filmplansch för ${movie.title}`}
-                                className="aspect-[2/3] w-36 rounded-lg border border-[#9f8847] object-cover lg:w-40"
+                                className="aspect-2/3 w-36 rounded-lg border border-[#9f8847] object-cover lg:w-40"
                             />
                         ) : (
-                            <div className="flex aspect-[2/3] w-36 items-center justify-center rounded-lg border border-[#9f8847] bg-[#1b1b1b] p-3 text-center font-serif text-sm text-[#d9bd62] lg:w-40">
+                            <div className="flex aspect-2/3 w-36 items-center justify-center rounded-lg border border-[#9f8847] bg-[#1b1b1b] p-3 text-center font-serif text-sm text-[#d9bd62] lg:w-40">
                                 Ingen plansch tillgänglig
                             </div>
                         )}
@@ -501,7 +552,7 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
                                                             }
                                                             aria-label={`Rad ${seat.rowNumber}, plats ${seat.seatNumber}${seat.isBooked ? ', upptagen' : isSelected ? ', vald' : ', ledig'}`}
                                                             aria-pressed={isSelected}
-                                                            className={`flex items-center justify-center rounded-md transition hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#e5c86a] disabled:cursor-not-allowed ${seatColor}`}
+                                                            className={`flex items-center justify-center rounded-md transition hover:brightness-125 focus-visible:outline focus-visible:outline-[#e5c86a] disabled:cursor-not-allowed ${seatColor}`}
                                                         >
                                                             <SeatIcon />
                                                         </button>
@@ -554,22 +605,12 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
 
                 <div className="mt-5 flex justify-end">
                     <button
-                        type="button"
-                        disabled={!canContinue}
-                        onClick={() =>
-                            navigate('/booking-confirmation', {
-                                state: {
-                                    viewingId,
-                                    userId,
-                                    ticketCounts,
-                                    selectedSeatIds,
-                                    totalPrice,
-                                },
-                            })
-                        }
+                         type="button"
+                         disabled={!canContinue}
+                         onClick={handleBooking}
                         className="w-full rounded-md bg-[#dfbd35] px-7 py-3 font-serif text-base text-black transition hover:bg-[#edd05b] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-                    >
-                        Gå vidare
+                        >
+                         Bekräfta bokning
                     </button>
                 </div>
             </div>

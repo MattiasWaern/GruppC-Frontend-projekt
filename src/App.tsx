@@ -6,6 +6,7 @@ import BookingBanner from './components/BookingBanner'
 import MobileNavigation from './components/MobileNavigation'
 import MovieDetails from './pages/detaljsSida'
 import Footer from './components/Footer'
+import BookingConfirmation from './pages/BookingConfirmation'
 
 function HomePage() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/movies/:id" element={<MovieDetails />} />
+            <Route path="/booking-confirmation" element={<BookingConfirmation />} />
           </Routes>
         </main>
 
