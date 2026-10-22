@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import db from "../db.js";
 import type { Booking } from "../types/booking.js";
+import { randomBytes } from "node:crypto";
 
 const router = Router();
 
@@ -239,7 +240,9 @@ router.post("/", async (req, res) => {
       return;
     }
 
-    const bookingNumber = `B-${Date.now()}`;
+    
+  const bookingNumber = `B-${randomBytes(16).toString("hex").toUpperCase()}`;
+
     const bookingDate = new Date().toISOString();
 
     const [result] = await conn.query<ResultSetHeader>(

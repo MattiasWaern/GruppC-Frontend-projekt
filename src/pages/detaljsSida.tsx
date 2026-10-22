@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router";
 import type { Movie } from "../types/movie";
 
 function toCssBackground(value?: string | null) {
@@ -14,7 +14,7 @@ function toCssBackground(value?: string | null) {
   return `#${background}`;
 }
 
-export function MovieDetailsPage() {
+export default function MovieDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
   const [movie, setMovie] = useState<Movie | null>(null);

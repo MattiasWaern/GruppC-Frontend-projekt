@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { useEffect, useState } from "react";
 
 interface Movie {
@@ -76,10 +77,11 @@ export default function MovieSection() {
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {movies.map((movie) => (
-            <article
-              key={movie.movieId}
-              className="overflow-hidden rounded-xl border border-[#806b36] bg-[#292929] transition duration-200 hover:-translate-y-1"
-            >
+            <Link
+  key={movie.movieId}
+  to={`/movies/${movie.movieId}`}
+  className="block overflow-hidden rounded-xl border border-[#806b36] bg-[#292929] transition duration-200 hover:-translate-y-1"
+>
               {movie.poster && movie.poster.startsWith("http") ? (
                 <img
                   src={movie.poster}
@@ -125,7 +127,7 @@ export default function MovieSection() {
                   </div>
                 )}
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       )}
