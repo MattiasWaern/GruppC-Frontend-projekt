@@ -316,7 +316,7 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
                             ).map(([type, label]) => (
                                 <div
                                     key={type}
-                                    className="flex min-h-[44px] items-center justify-between gap-3 font-serif text-base sm:text-lg"
+                                    className="flex min-h-11 items-center justify-between gap-3 font-serif text-base sm:text-lg"
                                 >
                                     <span className="min-w-0 flex-1">
                                         {label}
@@ -389,17 +389,17 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
 
                     <div className="justify-self-center">
                         {loadingMovie ? (
-                            <div className="flex aspect-[2/3] w-36 items-center justify-center rounded-lg bg-[#1b1b1b] text-sm text-zinc-400 lg:w-40">
+                            <div className="flex aspect-2/3-36 items-center justify-center rounded-lg bg-[#1b1b1b] text-sm text-zinc-400 lg:w-40">
                                 Laddar film...
                             </div>
                         ) : movie?.posterUrl ? (
                             <img
                                 src={movie.posterUrl}
                                 alt={`Filmplansch för ${movie.title}`}
-                                className="aspect-[2/3] w-36 rounded-lg border border-[#9f8847] object-cover lg:w-40"
+                                className="aspect-2/3 w-36 rounded-lg border border-[#9f8847] object-cover lg:w-40"
                             />
                         ) : (
-                            <div className="flex aspect-[2/3] w-36 items-center justify-center rounded-lg border border-[#9f8847] bg-[#1b1b1b] p-3 text-center font-serif text-sm text-[#d9bd62] lg:w-40">
+                            <div className="flex aspect-2/3 w-36 items-center justify-center rounded-lg border border-[#9f8847] bg-[#1b1b1b] p-3 text-center font-serif text-sm text-[#d9bd62] lg:w-40">
                                 Ingen plansch tillgänglig
                             </div>
                         )}
@@ -501,7 +501,7 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
                                                             }
                                                             aria-label={`Rad ${seat.rowNumber}, plats ${seat.seatNumber}${seat.isBooked ? ', upptagen' : isSelected ? ', vald' : ', ledig'}`}
                                                             aria-pressed={isSelected}
-                                                            className={`flex items-center justify-center rounded-md transition hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#e5c86a] disabled:cursor-not-allowed ${seatColor}`}
+                                                            className={`flex items-center justify-center rounded-md transition hover:brightness-125 focus-visible:outline focus-visible:outline-[#e5c86a] disabled:cursor-not-allowed ${seatColor}`}
                                                         >
                                                             <SeatIcon />
                                                         </button>

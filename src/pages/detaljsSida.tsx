@@ -90,13 +90,13 @@ export default function MovieDetailsPage() {
   return (
     <main className="min-h-screen bg-[#121212] font-serif text-[#e4ce83]">
       <div
-        className="mx-auto min-h-screen w-full max-w-[800px] px-[5%] py-6 sm:px-8 lg:px-12 lg:py-[30px]"
+        className="mx-auto min-h-screen w-full max-w-200 px-[5%] py-6 sm:px-8 lg:px-12 lg:py-7.5"
         style={{
           background: toCssBackground(movie.background_color),
         }}
       >
         {/* Filmens titel och information */}
-        <section className="mb-[18px] text-center">
+        <section className="mb-4.5 text-center">
           <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-medium text-[#e5d27c]">
             {movie.title}
           </h1>
