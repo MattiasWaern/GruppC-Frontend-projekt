@@ -6,6 +6,7 @@ import BookingBanner from './components/BookingBanner'
 import MobileNavigation from './components/MobileNavigation'
 import MovieDetails from './pages/detaljsSida'
 import Footer from './components/Footer'
+import { MoviesPage } from "./pages/MoviesPage";
 
 function HomePage() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <main className="mx-auto max-w-7xl px-4 pb-24 md:px-8 md:pb-12">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/movies" element={<MoviesPage />} />
             <Route path="/movies/:id" element={<MovieDetails />} />
           </Routes>
         </main>
