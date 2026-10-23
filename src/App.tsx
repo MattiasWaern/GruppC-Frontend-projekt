@@ -15,16 +15,17 @@ function HomePage() {
       <MovieSection />
       <BookingBanner />
     </>
-  )
+  );
 }
 
 export default function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-[#1d1d1d] text-[#e5ca7a]">
+
         <Header />
 
-        <main className="mx-auto max-w-7xl px-4 pb-24 md:px-8 md:pb-12">
+        <main className="mx-auto min-h-screen max-w-7xl px-4 pb-24 pt-20 md:px-8 md:pb-12">
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/movies/:id" element={<MovieDetails />} />
@@ -32,16 +33,11 @@ export default function App() {
           </Routes>
         </main>
 
-        <footer className="border-t border-[#806b36] px-4 py-6 text-center text-sm text-gray-400">
-          <p>© 2026 Filmvisarna</p>
-          <p className="mt-2">Upplev film tillsammans.</p>
-        </footer>
-      <footer> 
-      <Footer />
-      </footer>
+        <Footer />
 
         <MobileNavigation />
+
       </div>
     </BrowserRouter>
-  )
+  );
 }
