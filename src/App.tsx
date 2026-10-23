@@ -1,14 +1,12 @@
-
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import Header from "./components/Header";
-import HeroSection from "./components/HeroSection";
-import MovieSection from "./components/MovieSection";
-import BookingBanner from "./components/BookingBanner";
-import MobileNavigation from "./components/MobileNavigation";
-import  MovieDetailsPage  from "./pages/detaljsSida";
-import Footer from "./components/Footer";
-import { MoviesPage } from "./pages/MoviesPage";
+import { BrowserRouter, Routes, Route } from 'react-router'
+import Header from './components/Header'
+import HeroSection from './components/HeroSection'
+import MovieSection from './components/MovieSection'
+import BookingBanner from './components/BookingBanner'
+import MobileNavigation from './components/MobileNavigation'
+import MovieDetails from './pages/detaljsSida'
+import Footer from './components/Footer'
+import BookingConfirmation from './pages/BookingConfirmation'
 
 function HomePage() {
   return (
@@ -30,8 +28,8 @@ export default function App() {
         <main className="mx-auto min-h-screen max-w-7xl px-4 pb-24 pt-20 md:px-8 md:pb-12">
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/movies" element={<MoviesPage />} />
-            <Route path="/movies/:id" element={<MovieDetailsPage />} />
+            <Route path="/movies/:id" element={<MovieDetails />} />
+            <Route path="/booking-confirmation" element={<BookingConfirmation />} />
           </Routes>
         </main>
 

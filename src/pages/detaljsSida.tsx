@@ -150,7 +150,7 @@ export default function MovieDetailsPage() {
         {/* Biljettpanel FÅR KOPPLA DETTA TILL RÄTT DATUM SENARE*/}
         <section
           id="biljetter"
-          className="mx-auto mt-14 w-full max-w-120 rounded-xl border border-[#6c5a31] bg-[#191919] p-4.5 font-sans text-[#e4ce83] sm:mt-13.75 sm:p-6"
+          className="mx-auto mt-14 w-full max-w-120nded-xl border border-[#6c5a31] bg-[#191919] p-4.5 font-sans text-[#e4ce83] sm:mt-13.75 sm:p-6"
         >
           <h2 className="mb-4.5 text-base font-normal">Biljetter</h2>
 
