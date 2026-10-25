@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import db from "../db.js";
 import type { Booking } from "../types/booking.js";
+import { randomBytes } from "node:crypto";
 
 const router = Router();
 
@@ -239,7 +240,9 @@ router.post("/", async (req, res) => {
       return;
     }
 
-    const bookingNumber = `B-${Date.now()}`;
+    
+  const bookingNumber = `B-${randomBytes(16).toString("hex").toUpperCase()}`;
+
     const bookingDate = new Date().toISOString();
 
     const [result] = await conn.query<ResultSetHeader>(
@@ -315,12 +318,17 @@ router.post("/", async (req, res) => {
   }
 });
 
-// DELETE: Ta bort en bokning och dess stolar.
-router.delete("/:id", async (req, res) => {
-  const bookingId = Number(req.params.id);
+// DELETE: Ta bort en bokning och dess stolar med bokningsnumret och inte ID nu.
+router.delete("/", async (req, res) => {
+  const { booking_number } = req.body ?? {};
 
-  if (!Number.isInteger(bookingId) || bookingId <= 0) {
-    res.status(400).json({ error: "Ogiltigt boknings-ID" });
+  if (
+    typeof booking_number !== "string" ||
+    !booking_number.trim()
+  ) {
+    res.status(400).json({
+      error: "Du måste ange ett giltigt bokningsnummer",
+    });
     return;
   }
 
@@ -329,12 +337,33 @@ router.delete("/:id", async (req, res) => {
   try {
     await conn.beginTransaction();
 
-    // Stolarna tas bort först. Databasen har också ON DELETE CASCADE, så det är en extra säkerhet.
+    // Hämta bookingId med hjälp av bokningsnumret
+    const [bookings] = await conn.query<RowDataPacket[]>(
+      `SELECT bookingId
+       FROM booking
+       WHERE booking_number = ?
+       FOR UPDATE`,
+      [booking_number.trim()]
+    );
+
+    if (bookings.length === 0) {
+      await conn.rollback();
+
+      res.status(404).json({
+        error: "Bokningen hittades inte",
+      });
+      return;
+    }
+
+    const bookingId = bookings[0].bookingId;
+
+    // Radera bokade stolar först
     await conn.query<ResultSetHeader>(
       "DELETE FROM bokad_stol WHERE bookingId = ?",
       [bookingId]
     );
 
+    // Radera själva bokningen
     const [result] = await conn.query<ResultSetHeader>(
       "DELETE FROM booking WHERE bookingId = ?",
       [bookingId]
@@ -342,21 +371,31 @@ router.delete("/:id", async (req, res) => {
 
     if (result.affectedRows === 0) {
       await conn.rollback();
-      res.status(404).json({ error: "Bokningen hittades inte" });
+
+      res.status(404).json({
+        error: "Bokningen hittades inte",
+      });
       return;
     }
 
     await conn.commit();
+
     res.status(204).send();
   } catch (error) {
     try {
       await conn.rollback();
     } catch (rollbackError) {
-      console.error("Kunde inte återställa transaktionen:", rollbackError);
+      console.error(
+        "Kunde inte återställa transaktionen:",
+        rollbackError
+      );
     }
 
     console.error("Kunde inte avboka:", error);
-    res.status(500).json({ error: "Kunde inte avboka" });
+
+    res.status(500).json({
+      error: "Kunde inte avboka",
+    });
   } finally {
     conn.release();
   }

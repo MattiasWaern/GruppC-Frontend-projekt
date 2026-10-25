@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { useEffect, useState } from "react";
 
 interface Movie {
@@ -39,7 +40,7 @@ export default function MovieSection() {
 
   if (loading) {
     return (
-      <section aria-labelledby="movies-heading" className="ml-64 py-10 md:ml-64">
+      <section aria-labelledby="movies-heading" className="px-4 py-10 sm:px-6 lg:px-8 md:ml-64">
         <h2 id="movies-heading" className="mb-6 text-2xl font-bold">
           Alla filmer
         </h2>
@@ -50,7 +51,7 @@ export default function MovieSection() {
 
   if (error) {
     return (
-      <section aria-labelledby="movies-heading" className="ml-64 py-10 md:ml-64">
+      <section aria-labelledby="movies-heading" className="px-4 py-10 sm:px-6 lg:px-8 md:ml-64">
         <h2 id="movies-heading" className="mb-6 text-2xl font-bold">
           Alla filmer
         </h2>
@@ -60,7 +61,7 @@ export default function MovieSection() {
   }
 
   return (
-    <section aria-labelledby="movies-heading" className="ml-64 py-10 md:ml-64">
+    <section aria-labelledby="movies-heading" className="px-4 py-10 sm:px-6 lg:px-8 md:ml-64">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h2 id="movies-heading" className="text-2xl font-bold">
           Alla filmer
@@ -76,10 +77,11 @@ export default function MovieSection() {
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {movies.map((movie) => (
-            <article
-              key={movie.movieId}
-              className="overflow-hidden rounded-xl border border-[#806b36] bg-[#292929] transition duration-200 hover:-translate-y-1"
-            >
+            <Link
+  key={movie.movieId}
+  to={`/movies/${movie.movieId}`}
+  className="block overflow-hidden rounded-xl border border-[#806b36] bg-[#292929] transition duration-200 hover:-translate-y-1"
+>
               {movie.poster && movie.poster.startsWith("http") ? (
                 <img
                   src={movie.poster}
@@ -125,7 +127,7 @@ export default function MovieSection() {
                   </div>
                 )}
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       )}

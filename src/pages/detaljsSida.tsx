@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router";
 import type { Movie } from "../types/movie";
 
 function toCssBackground(value?: string | null) {
@@ -14,7 +14,7 @@ function toCssBackground(value?: string | null) {
   return `#${background}`;
 }
 
-export function MovieDetailsPage() {
+export default function MovieDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
   const [movie, setMovie] = useState<Movie | null>(null);
@@ -90,13 +90,13 @@ export function MovieDetailsPage() {
   return (
     <main className="min-h-screen bg-[#121212] font-serif text-[#e4ce83]">
       <div
-        className="mx-auto min-h-screen w-full max-w-[800px] px-[5%] py-6 sm:px-8 lg:px-12 lg:py-[30px]"
+        className="mx-auto min-h-screen w-full max-w-200 px-[5%] py-6 sm:px-8 lg:px-12 lg:py-7.5"
         style={{
           background: toCssBackground(movie.background_color),
         }}
       >
         {/* Filmens titel och information */}
-        <section className="mb-[18px] text-center">
+        <section className="mb-4.5 text-center">
           <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-medium text-[#e5d27c]">
             {movie.title}
           </h1>
@@ -106,7 +106,7 @@ export function MovieDetailsPage() {
           </p>
 
           {movie.genres?.length > 0 && (
-            <p className="my-[5px] text-l text-[#d9bb79]">
+            <p className="my-1.25 text-l text-[#d9bb79]">
               {movie.genres.join(", ")}
             </p>
           )}
@@ -134,7 +134,7 @@ export function MovieDetailsPage() {
               rel="noreferrer"
               aria-label={`Se trailer för ${movie.title}`}
             >
-              <span className="grid h-[46px] w-[46px] place-items-center rounded-full bg-[#e4ce83] pl-[3px] text-lg text-[#181818] [text-shadow:none]">
+              <span className="grid h-11.5 w-11.5 place-items-center rounded-full bg-[#e4ce83] pl-0.75 text-lg text-[#181818] text-shadow-none">
                 ▶
               </span>
               <span>Se trailer</span>
@@ -143,25 +143,25 @@ export function MovieDetailsPage() {
         </section>
 
         {/* Filmbeskrivning */}
-        <p className="mx-auto mt-4 max-w-[560px] whitespace-pre-line text-s leading-[1.55] text-[#e4ce83]">
+        <p className="mx-auto mt-4 max-w-140 whitespace-pre-line text-s leading-[1.55] text-[#e4ce83]">
           {movie.description}
         </p>
 
         {/* Biljettpanel FÅR KOPPLA DETTA TILL RÄTT DATUM SENARE*/}
         <section
           id="biljetter"
-          className="mx-auto mt-14 w-full max-w-[480px] rounded-xl border border-[#6c5a31] bg-[#191919] p-[18px] font-sans text-[#e4ce83] sm:mt-[55px] sm:p-6"
+          className="mx-auto mt-14 w-full max-w-120nded-xl border border-[#6c5a31] bg-[#191919] p-4.5 font-sans text-[#e4ce83] sm:mt-13.75 sm:p-6"
         >
-          <h2 className="mb-[18px] text-base font-normal">Biljetter</h2>
+          <h2 className="mb-4.5 text-base font-normal">Biljetter</h2>
 
-          <div className="grid grid-cols-4 gap-1.5 sm:gap-[10px]">
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
             {[0, 1, 2, 3].map((day) => {
               const date = new Date();
               date.setDate(date.getDate() + day);
 
               return (
                 <div
-                  className="flex min-h-[65px] flex-col items-center justify-center gap-1 rounded-[3px] bg-[#2b2b2b] text-xs text-[#dedede] sm:min-h-[75px]"
+                  className="flex min-h-16.25 flex-col items-center justify-center gap-1 rounded-[3px] bg-[#2b2b2b] text-xs text-[#dedede] sm:min-h-18.75"
                   key={day}
                 >
                   <span>
@@ -184,26 +184,26 @@ export function MovieDetailsPage() {
             })}
           </div>
 
-          <h3 className="mb-[10px] mt-5 text-sm font-normal">Salonger</h3>
+          <h3 className="mb-2.5 mt-5 text-sm font-normal">Salonger</h3>
 
           <div className="flex flex-wrap items-center gap-2 max-[600px]:items-stretch">
             <button
               type="button"
-              className="inline-flex min-h-[34px] items-center justify-center rounded-[3px] border border-[#414141] bg-[#2b2b2b] px-3 text-xs text-[#eee] transition-colors hover:bg-[#414141]"
+              className="inline-flex min-h-8.5 items-center justify-center rounded-[3px] border border-[#414141] bg-[#2b2b2b] px-3 text-xs text-[#eee] transition-colors hover:bg-[#414141]"
             >
               Stora salongen
             </button>
 
             <button
               type="button"
-              className="inline-flex min-h-[34px] items-center justify-center rounded-[3px] border border-[#414141] bg-[#2b2b2b] px-3 text-xs text-[#eee] transition-colors hover:bg-[#414141]"
+              className="inline-flex min-h-8.5 items-center justify-center rounded-[3px] border border-[#414141] bg-[#2b2b2b] px-3 text-xs text-[#eee] transition-colors hover:bg-[#414141]"
             >
               Lilla salongen
             </button>
 
             <Link
               to="/movies"
-              className="ml-auto inline-flex min-h-[34px] items-center justify-center rounded-[3px] bg-[#d7b83e] px-3 text-xs font-semibold text-[#181818] no-underline transition-colors hover:bg-[#ebd05c] max-[600px]:ml-0"
+              className="ml-auto inline-flex min-h-8.5 items-center justify-center rounded-[3px] bg-[#d7b83e] px-3 text-xs font-semibold text-[#181818] no-underline transition-colors hover:bg-[#ebd05c] max-[600px]:ml-0"
             >
               Välj platser
             </Link>
