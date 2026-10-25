@@ -320,14 +320,16 @@ router.post("/", async (req, res) => {
 
 // DELETE: Ta bort en bokning och dess stolar med bokningsnumret och inte ID nu.
 router.delete("/", async (req, res) => {
-  const { booking_number } = req.body ?? {};
+  const { email, booking_number } = req.body ?? {};
 
   if (
+    typeof email !== "string" ||
     typeof booking_number !== "string" ||
+    !email.trim() ||
     !booking_number.trim()
   ) {
     res.status(400).json({
-      error: "Du måste ange ett giltigt bokningsnummer",
+      error: "Ange e-post och bokningsnummer",
     });
     return;
   }
@@ -339,11 +341,12 @@ router.delete("/", async (req, res) => {
 
     // Hämta bookingId med hjälp av bokningsnumret
     const [bookings] = await conn.query<RowDataPacket[]>(
-      `SELECT bookingId
-       FROM booking
-       WHERE booking_number = ?
+      `SELECT b.bookingId
+       FROM booking b
+       INNER JOIN users u ON u.userId = b.userId
+       WHERE booking_number = ? AND u.email = ?
        FOR UPDATE`,
-      [booking_number.trim()]
+      [booking_number.trim().toUpperCase(), email.trim()]
     );
 
     if (bookings.length === 0) {

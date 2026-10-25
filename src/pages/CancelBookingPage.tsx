@@ -25,15 +25,14 @@ export default function CancelBookingPage() {
       setStatus("loading");
   
       try {
-        // POST /api/bookings/cancel måste finnas i backend
-        const res = await fetch("/api/bookings/cancel", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: email.trim(),
-            bookingNumber: bookingNumber.trim().toUpperCase(),
-          }),
-        });
+        const res = await fetch("/api/bookings", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: email.trim(),
+              booking_number: bookingNumber.trim().toUpperCase(),
+            }),
+          });
   
         if (!res.ok) {
           const data = await res.json().catch(() => null);
@@ -48,7 +47,7 @@ export default function CancelBookingPage() {
         setStatus("form");
       }
     }
-    
+
     return (
         <section className="py-8">
           <h1 className="mb-8 text-3xl font-semibold md:text-4xl">Avboka</h1>
@@ -90,7 +89,7 @@ export default function CancelBookingPage() {
                     required
                     value={bookingNumber}
                     onChange={(e) => setBookingNumber(e.target.value)}
-                    placeholder="45DE3AB"
+                    placeholder="B-9FA1C7D..."
                     className="rounded-md border border-[#806b36] bg-[#1d1d1d] px-3 py-2 text-sm uppercase outline-none placeholder:text-gray-500 focus:border-[#e5ca7a]"
                   />
                 </div>
