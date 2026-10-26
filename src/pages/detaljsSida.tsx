@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import type { Movie } from "../types/movie";
+import type { Viewing } from "../types/viewing";
+import type { Theater } from "../types/theater";
 
 function toCssBackground(value?: string | null) {
   if (!value) return undefined;
@@ -20,6 +22,14 @@ export default function MovieDetailsPage() {
   const [movie, setMovie] = useState<Movie | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [viewings, setViewings] = useState<Viewing[]>([]);
+  const [theaters, setTheaters] = useState<Theater[]>([]);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedViewingId, setSelectedViewingId] = useState<number | null>(
+    null,
+  );
+  const [viewingLoading, setViewingLoading] = useState(true);
+  const [viewingError, setViewingError] = useState("");
 
   useEffect(() => {
     if (!id) {
@@ -43,7 +53,7 @@ export default function MovieDetailsPage() {
           throw new Error(
             response.status === 404
               ? "Filmen hittades inte."
-              : `Kunde inte hämta filmen (${response.status}).`
+              : `Kunde inte hämta filmen (${response.status}).`,
           );
         }
 
@@ -65,7 +75,76 @@ export default function MovieDetailsPage() {
     return () => controller.abort();
   }, [id]);
 
-  if (loading) {
+  useEffect(() => {
+    if (!id) {
+      setViewingError("Inget film-ID angavs.");
+      setViewingLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function fetchViewings() {
+      try {
+        setViewingLoading(true);
+        setViewingError("");
+        setSelectedDate("");
+        setSelectedViewingId(null);
+
+        const [viewingsResponse, theatersResponse] = await Promise.all([
+          fetch(`/api/viewings/movie/${id}`, { signal: controller.signal }),
+          fetch(`/api/theaters`, { signal: controller.signal }),
+        ]);
+
+        if (!viewingsResponse.ok || !theatersResponse.ok) {
+          throw new Error(
+            "Kunde inte hämta visningsinformation eller bioinformation.",
+          );
+        }
+
+        const viewingsData: Viewing[] = await viewingsResponse.json();
+        const theatersData: Theater[] = await theatersResponse.json();
+        const movieViewings = viewingsData.filter(
+          (viewing) => viewing.movieId === Number(id),
+        );
+
+        setViewings(movieViewings);
+        setTheaters(theatersData);
+      } catch (err) {
+        if (err instanceof Error && err.name !== "AbortError") {
+          setViewingError(err.message);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setViewingLoading(false);
+        }
+      }
+    }
+
+    fetchViewings();
+
+    return () => controller.abort();
+  }, [id]);
+function getDateKey(value: string) {
+return value.slice(0, 10);
+}
+const availableDates = Array.from(new Set(viewings.map((viewing) => getDateKey(viewing.viewing_date.toString())))).sort();
+const selectedDateViewings = viewings.filter((viewing) => getDateKey(viewing.viewing_date.toString()) === selectedDate 
+);
+function getTheaterName(theaterId: number | null) {
+return theaters.find((theater) => theater.theaterId === theaterId)?.name || `salong ${theaterId}`;
+}
+
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("sv-SE", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+}   
+
+ if (loading) {
     return (
       <p className="min-h-screen bg-[#121212] p-12 text-center text-[#e4ce83]">
         Laddar film...
@@ -184,23 +263,7 @@ export default function MovieDetailsPage() {
             })}
           </div>
 
-          <h3 className="mb-2.5 mt-5 text-sm font-normal">Salonger</h3>
-
           <div className="flex flex-wrap items-center gap-2 max-[600px]:items-stretch">
-            <button
-              type="button"
-              className="inline-flex min-h-8.5 items-center justify-center rounded-[3px] border border-[#414141] bg-[#2b2b2b] px-3 text-xs text-[#eee] transition-colors hover:bg-[#414141]"
-            >
-              Stora salongen
-            </button>
-
-            <button
-              type="button"
-              className="inline-flex min-h-8.5 items-center justify-center rounded-[3px] border border-[#414141] bg-[#2b2b2b] px-3 text-xs text-[#eee] transition-colors hover:bg-[#414141]"
-            >
-              Lilla salongen
-            </button>
-
             <Link
               to="/movies"
               className="ml-auto inline-flex min-h-8.5 items-center justify-center rounded-[3px] bg-[#d7b83e] px-3 text-xs font-semibold text-[#181818] no-underline transition-colors hover:bg-[#ebd05c] max-[600px]:ml-0"
@@ -210,7 +273,7 @@ export default function MovieDetailsPage() {
           </div>
 
           <p className="mt-4 text-xs text-[#aaa]">
-            Välj datum och salong för att fortsätta.
+            Välj datum och tid för att fortsätta.
           </p>
         </section>
       </div>
