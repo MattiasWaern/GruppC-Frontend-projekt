@@ -40,7 +40,11 @@ export default function MovieSection() {
 
   if (loading) {
     return (
-      <section aria-labelledby="movies-heading" className="px-4 py-10 sm:px-6 lg:px-8 md:ml-64">
+      <section
+  id="movies"
+  aria-labelledby="movies-heading"
+  className="px-4 py-10 sm:px-6 lg:px-8 md:ml-64"
+>
         <h2 id="movies-heading" className="mb-6 text-2xl font-bold">
           Alla filmer
         </h2>
@@ -51,7 +55,11 @@ export default function MovieSection() {
 
   if (error) {
     return (
-      <section aria-labelledby="movies-heading" className="px-4 py-10 sm:px-6 lg:px-8 md:ml-64">
+      <section
+  id="movies"
+  aria-labelledby="movies-heading"
+  className="px-4 py-10 sm:px-6 lg:px-8 md:ml-64"
+>
         <h2 id="movies-heading" className="mb-6 text-2xl font-bold">
           Alla filmer
         </h2>
@@ -61,7 +69,11 @@ export default function MovieSection() {
   }
 
   return (
-    <section aria-labelledby="movies-heading" className="px-4 py-10 sm:px-6 lg:px-8 md:ml-64">
+    <section
+  id="movies"
+  aria-labelledby="movies-heading"
+  className="px-4 py-10 sm:px-6 lg:px-8 md:ml-64"
+>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h2 id="movies-heading" className="text-2xl font-bold">
           Alla filmer

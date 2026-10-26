@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
 import type { FormEvent } from "react";
@@ -15,7 +14,7 @@ import {
 
 const navigationItems = [
   { label: "Hem", href: "/", Icon: House },
-  { label: "Boka", href: "/movies", Icon: CalendarDays },
+  { label: "Boka", href: "#movies", Icon: CalendarDays },
   { label: "Om oss", href: "/om-oss", Icon: Info },
   { label: "Konto", href: "/konto", Icon: UserRound },
 ];
@@ -34,22 +33,32 @@ export default function MobileNavigation() {
     }
   }, [searchOpen]);
 
-function handleSearch(event: FormEvent<HTMLFormElement>) {
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     const query = search.trim();
 
     if (!query) return;
 
-    navigate(`/movies?search=${encodeURIComponent(query)}`);
-
     setSearchOpen(false);
-    setSearch("");
+    navigate(`/?search=${encodeURIComponent(query)}`);
+  }
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+function handleBookingClick() {
+  setSearchOpen(false);
+
+  if (window.location.pathname !== "/") {
+    navigate("/");
+    setTimeout(() => {
+      document.getElementById("movies")?.scrollIntoView({
+        behavior: "smooth",
+      });
+    }, 100);
+    return;
+  }
+
+  document.getElementById("movies")?.scrollIntoView({
+    behavior: "smooth",
+  });
 }
 
   return (
@@ -172,28 +181,34 @@ function handleSearch(event: FormEvent<HTMLFormElement>) {
         {navigationItems
           .filter((item) => item.label !== "Hem")
           .map(({ label, href, Icon }) => (
-            <Link
-              key={href}
-              to={href}
-              onClick={() => setSearchOpen(false)}
-              className="
-                flex flex-col items-center gap-1
-                rounded-lg px-2 py-2
-                text-[#e5ca7a]
-                transition-colors hover:bg-[#333333]
+<Link
+            key={href}
+            to={label === "Boka" ? "/" : href}
+            onClick={(event) => {
+             setSearchOpen(false);
 
-                md:flex-row md:justify-start
-                md:gap-3 md:px-2 lg:px-3
+            if (label === "Boka") {
+            event.preventDefault();
+            handleBookingClick();
+             }
+             }}
+             className="
+             flex flex-col items-center gap-1
+              rounded-lg px-2 py-2
+               text-[#e5ca7a]
+               transition-colors hover:bg-[#333333]
+               md:flex-row md:justify-start
+               md:gap-3 md:px-2 lg:px-3
               "
-            >
-              <Icon
-                aria-hidden="true"
-                size={24}
-                strokeWidth={1.7}
-                className="shrink-0"
-              />
-              <span className="text-xs md:text-sm">{label}</span>
-            </Link>
+>
+  <Icon
+    aria-hidden="true"
+    size={24}
+    strokeWidth={1.7}
+    className="shrink-0"
+  />
+  <span className="text-xs md:text-sm">{label}</span>
+</Link>
           ))}
       </nav>
     </>
