@@ -92,7 +92,7 @@ export default function MovieDetailsPage() {
         setSelectedViewingId(null);
 
         const [viewingsResponse, theatersResponse] = await Promise.all([
-          fetch(`/api/viewings/movie/${id}`, { signal: controller.signal }),
+          fetch(`/api/viewings`, { signal: controller.signal }),
           fetch(`/api/theaters`, { signal: controller.signal }),
         ]);
 
@@ -233,39 +233,54 @@ function formatDate(dateString: string) {
         >
           <h2 className="mb-4.5 text-base font-normal">Biljetter</h2>
 
-          <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
-            {[0, 1, 2, 3].map((day) => {
-              const date = new Date();
-              date.setDate(date.getDate() + day);
+{viewingLoading && <p className="text-[#e4ce83]">Laddar visningar...</p>}
+{viewingError && <p className="text-sm text-red-400">{viewingError}</p>}
 
-              return (
-                <div
-                  className="flex min-h-16.25 flex-col items-center justify-center gap-1 rounded-[3px] bg-[#2b2b2b] text-xs text-[#dedede] sm:min-h-18.75"
-                  key={day}
-                >
-                  <span>
-                    {date.toLocaleDateString("sv-SE", {
-                      weekday: "short",
-                    })}
-                  </span>
+{!viewingLoading && !viewingError && availableDates.length == 0 && (
+ <p className="text-[#e4ce83]">Inga visningar tillgängliga för denna film.</p>
+)}    
+<div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
+  {availableDates.map((dateKey) => (
+    <button
+    type="button"
+    key={dateKey}
+   
+    onClick={() => {
+      setSelectedDate(dateKey);  
+      setSelectedViewingId(null); // Reset selected viewing when date changes
+    }}
+    className={`flex min-h-16.25 flex-col items-center justify-center gap-1 rounded-[3px] text-xs sm:min-h-18.75 ${
+      selectedDate === dateKey ? "bg-[#d7b83e] text-[#181818]" : "bg-[#2b2b2b] text-[#dedede]"
+    }`}
+    >
+      {formatDate(dateKey)}
+    </button>
+  ))}
+</div>
 
-                  <strong className="text-lg text-[#e4ce83]">
-                    {date.getDate()}
-                  </strong>
-
-                  <span>
-                    {date.toLocaleDateString("sv-SE", {
-                      month: "short",
-                    })}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+{selectedDate && (
+  <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+    {selectedDateViewings.map((viewing) => (
+      <button
+        type="button"
+        key={viewing.viewingId}
+        onClick={() => setSelectedViewingId(viewing.viewingId)}
+        className={`flex flex-col items-center rounded-[3px] bg-[#2b2b2b] p-2 text-xs text-[#dedede] ${
+          selectedViewingId === viewing.viewingId ? "border border-[#e4ce83]" : ""
+        }`}
+      >
+        <strong className="text-lg text-[#e4ce83]">
+          {viewing.viewing_start_time.slice(0, 5)}
+        </strong>
+        <span>{getTheaterName(viewing.theaterId)}</span>
+      </button>
+    ))}
+  </div>
+)}
 
           <div className="flex flex-wrap items-center gap-2 max-[600px]:items-stretch">
             <Link
-              to="/movies"
+              to={`/bookings/${selectedViewingId}`}
               className="ml-auto inline-flex min-h-8.5 items-center justify-center rounded-[3px] bg-[#d7b83e] px-3 text-xs font-semibold text-[#181818] no-underline transition-colors hover:bg-[#ebd05c] max-[600px]:ml-0"
             >
               Välj platser
