@@ -22,7 +22,7 @@ export default function Header() {
 
         <a href="#hem" className="shrink-0">
           <img
-            src="public/images/logo.png"
+            src="/public/images/logo.png"
             alt="Filmvisarna"
             className="h-auto w-40 object-contain sm:w-48 md:w-56"
           />
