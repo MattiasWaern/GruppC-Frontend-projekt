@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router";
 import type { FormEvent } from "react";
 
@@ -20,13 +19,20 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#806b36] bg-[#1d1d1d]">
       <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between gap-4 px-4 md:px-8">
 
-        <a href="#hem" className="shrink-0">
-          <img
+
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          aria-label="Gå till startsidan"
+          className="shrink-0 cursor-pointer"
+        >
+           <img
             src="/public/images/logo.png"
             alt="Filmvisarna"
             className="h-auto w-40 object-contain sm:w-48 md:w-56"
           />
-        </a>
+        </button>
+
 
         <form
           role="search"
@@ -68,13 +74,14 @@ export default function Header() {
           </div>
         </form>
 
-        <a
-          href="#profil"
-          className="shrink-0 rounded-full border border-[#b99b4c] px-4 py-2 font-serif text-sm text-[#e5ca7a] transition-colors hover:bg-[#b99b4c] hover:text-black"
+         <button
+          type="button"
+          onClick={() => navigate("/profil")}
+          aria-label="Gå till startsidan"
+          className="shrink-0 cursor-pointer rounded-full border border-[#b99b4c] px-4 py-2 font-serif text-sm text-[#e5ca7a] transition-colors hover:bg-[#b99b4c] hover:text-black"
         >
-          Min profil
-        </a>
-
+           Min profil
+        </button>
       </div>
     </header>
   );
