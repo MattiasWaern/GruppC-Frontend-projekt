@@ -9,6 +9,7 @@ import Footer from './components/Footer'
 import BookingConfirmation from './pages/BookingConfirmation'
 import BookingPage from './components/bookingSite'
 import CancelBookingPage from './pages/CancelBookingPage'
+import { MoviesPage } from './pages/MoviesPage'
 
 function HomePage() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/movies/:id" element={<MovieDetails />} />
+            <Route path="/movies" element={<MoviesPage />}/> 
             <Route path="/booking-confirmation" element={<BookingConfirmation />} />
             <Route path="/bookings/:viewingId" element={<BookingPage userId={1} />} />
             <Route path="/cancel-booking" element={<CancelBookingPage />} />
