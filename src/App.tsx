@@ -8,6 +8,7 @@ import MovieDetails from './pages/detaljsSida'
 import Footer from './components/Footer'
 import BookingConfirmation from './pages/BookingConfirmation'
 import BookingPage from './components/bookingSite'
+import CancelBookingPage from './pages/CancelBookingPage'
 
 function HomePage() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/movies/:id" element={<MovieDetails />} />
             <Route path="/booking-confirmation" element={<BookingConfirmation />} />
             <Route path="/bookings/:viewingId" element={<BookingPage userId={1} />} />
+            <Route path="/cancel-booking" element={<CancelBookingPage />} />
           </Routes>
         </main>
 
