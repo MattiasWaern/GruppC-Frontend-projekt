@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import type { Movie } from "../types/movie";
+import type { Viewing } from "../types/viewing";
+import type { Theater } from "../types/theater";
 
 function toCssBackground(value?: string | null) {
   if (!value) return undefined;
@@ -20,6 +22,14 @@ export default function MovieDetailsPage() {
   const [movie, setMovie] = useState<Movie | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [viewings, setViewings] = useState<Viewing[]>([]);
+  const [theaters, setTheaters] = useState<Theater[]>([]);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedViewingId, setSelectedViewingId] = useState<number | null>(
+    null,
+  );
+  const [viewingLoading, setViewingLoading] = useState(true);
+  const [viewingError, setViewingError] = useState("");
 
   useEffect(() => {
     if (!id) {
@@ -43,7 +53,7 @@ export default function MovieDetailsPage() {
           throw new Error(
             response.status === 404
               ? "Filmen hittades inte."
-              : `Kunde inte hämta filmen (${response.status}).`
+              : `Kunde inte hämta filmen (${response.status}).`,
           );
         }
 
@@ -65,7 +75,76 @@ export default function MovieDetailsPage() {
     return () => controller.abort();
   }, [id]);
 
-  if (loading) {
+  useEffect(() => {
+    if (!id) {
+      setViewingError("Inget film-ID angavs.");
+      setViewingLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function fetchViewings() {
+      try {
+        setViewingLoading(true);
+        setViewingError("");
+        setSelectedDate("");
+        setSelectedViewingId(null);
+
+        const [viewingsResponse, theatersResponse] = await Promise.all([
+          fetch(`/api/viewings`, { signal: controller.signal }),
+          fetch(`/api/theaters`, { signal: controller.signal }),
+        ]);
+
+        if (!viewingsResponse.ok || !theatersResponse.ok) {
+          throw new Error(
+            "Kunde inte hämta visningsinformation eller bioinformation.",
+          );
+        }
+
+        const viewingsData: Viewing[] = await viewingsResponse.json();
+        const theatersData: Theater[] = await theatersResponse.json();
+        const movieViewings = viewingsData.filter(
+          (viewing) => viewing.movieId === Number(id),
+        );
+
+        setViewings(movieViewings);
+        setTheaters(theatersData);
+      } catch (err) {
+        if (err instanceof Error && err.name !== "AbortError") {
+          setViewingError(err.message);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setViewingLoading(false);
+        }
+      }
+    }
+
+    fetchViewings();
+
+    return () => controller.abort();
+  }, [id]);
+function getDateKey(value: string) {
+return value.slice(0, 10);
+}
+const availableDates = Array.from(new Set(viewings.map((viewing) => getDateKey(viewing.viewing_date.toString())))).sort();
+const selectedDateViewings = viewings.filter((viewing) => getDateKey(viewing.viewing_date.toString()) === selectedDate 
+);
+function getTheaterName(theaterId: number | null) {
+return theaters.find((theater) => theater.theaterId === theaterId)?.name || `salong ${theaterId}`;
+}
+
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("sv-SE", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+}   
+
+ if (loading) {
     return (
       <p className="min-h-screen bg-[#121212] p-12 text-center text-[#e4ce83]">
         Laddar film...
@@ -154,55 +233,54 @@ export default function MovieDetailsPage() {
         >
           <h2 className="mb-4.5 text-base font-normal">Biljetter</h2>
 
-          <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
-            {[0, 1, 2, 3].map((day) => {
-              const date = new Date();
-              date.setDate(date.getDate() + day);
+{viewingLoading && <p className="text-[#e4ce83]">Laddar visningar...</p>}
+{viewingError && <p className="text-sm text-red-400">{viewingError}</p>}
 
-              return (
-                <div
-                  className="flex min-h-16.25 flex-col items-center justify-center gap-1 rounded-[3px] bg-[#2b2b2b] text-xs text-[#dedede] sm:min-h-18.75"
-                  key={day}
-                >
-                  <span>
-                    {date.toLocaleDateString("sv-SE", {
-                      weekday: "short",
-                    })}
-                  </span>
+{!viewingLoading && !viewingError && availableDates.length == 0 && (
+ <p className="text-[#e4ce83]">Inga visningar tillgängliga för denna film.</p>
+)}    
+<div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
+  {availableDates.map((dateKey) => (
+    <button
+    type="button"
+    key={dateKey}
+   
+    onClick={() => {
+      setSelectedDate(dateKey);  
+      setSelectedViewingId(null); // Reset selected viewing when date changes
+    }}
+    className={`flex min-h-16.25 flex-col items-center justify-center gap-1 rounded-[3px] text-xs sm:min-h-18.75 ${
+      selectedDate === dateKey ? "bg-[#d7b83e] text-[#181818]" : "bg-[#2b2b2b] text-[#dedede]"
+    }`}
+    >
+      {formatDate(dateKey)}
+    </button>
+  ))}
+</div>
 
-                  <strong className="text-lg text-[#e4ce83]">
-                    {date.getDate()}
-                  </strong>
-
-                  <span>
-                    {date.toLocaleDateString("sv-SE", {
-                      month: "short",
-                    })}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          <h3 className="mb-2.5 mt-5 text-sm font-normal">Salonger</h3>
+{selectedDate && (
+  <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+    {selectedDateViewings.map((viewing) => (
+      <button
+        type="button"
+        key={viewing.viewingId}
+        onClick={() => setSelectedViewingId(viewing.viewingId)}
+        className={`flex flex-col items-center rounded-[3px] bg-[#2b2b2b] p-2 text-xs text-[#dedede] ${
+          selectedViewingId === viewing.viewingId ? "border border-[#e4ce83]" : ""
+        }`}
+      >
+        <strong className="text-lg text-[#e4ce83]">
+          {viewing.viewing_start_time.slice(0, 5)}
+        </strong>
+        <span>{getTheaterName(viewing.theaterId)}</span>
+      </button>
+    ))}
+  </div>
+)}
 
           <div className="flex flex-wrap items-center gap-2 max-[600px]:items-stretch">
-            <button
-              type="button"
-              className="inline-flex min-h-8.5 items-center justify-center rounded-[3px] border border-[#414141] bg-[#2b2b2b] px-3 text-xs text-[#eee] transition-colors hover:bg-[#414141]"
-            >
-              Stora salongen
-            </button>
-
-            <button
-              type="button"
-              className="inline-flex min-h-8.5 items-center justify-center rounded-[3px] border border-[#414141] bg-[#2b2b2b] px-3 text-xs text-[#eee] transition-colors hover:bg-[#414141]"
-            >
-              Lilla salongen
-            </button>
-
             <Link
-              to="/movies"
+              to={`/bookings/${selectedViewingId}`}
               className="ml-auto inline-flex min-h-8.5 items-center justify-center rounded-[3px] bg-[#d7b83e] px-3 text-xs font-semibold text-[#181818] no-underline transition-colors hover:bg-[#ebd05c] max-[600px]:ml-0"
             >
               Välj platser
@@ -210,7 +288,7 @@ export default function MovieDetailsPage() {
           </div>
 
           <p className="mt-4 text-xs text-[#aaa]">
-            Välj datum och salong för att fortsätta.
+            Välj datum och tid för att fortsätta.
           </p>
         </section>
       </div>
