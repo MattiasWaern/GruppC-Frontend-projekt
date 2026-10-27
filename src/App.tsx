@@ -4,7 +4,7 @@ import HeroSection from './components/HeroSection'
 import MovieSection from './components/MovieSection'
 import BookingBanner from './components/BookingBanner'
 import MobileNavigation from './components/MobileNavigation'
-import MovieDetails from './pages/detaljsSida'
+import MovieDetails from './pages/detailPage'
 import Footer from './components/Footer'
 import BookingConfirmation from './pages/BookingConfirmation'
 import BookingPage from './components/bookingSite'
@@ -34,6 +34,7 @@ export default function App() {
             <Route path="/movies/:id" element={<MovieDetails />} />
             <Route path="/movies" element={<MoviesPage />}/> 
             <Route path="/booking-confirmation" element={<BookingConfirmation />} />
+            <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
             <Route path="/bookings/:viewingId" element={<BookingPage userId={1} />} />
             <Route path="/cancel-booking" element={<CancelBookingPage />} />
           </Routes>
