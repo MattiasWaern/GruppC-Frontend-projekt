@@ -31,7 +31,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/movies/:id" element={<MovieDetails />} />
-            <Route path="/booking-confirmation" element={<BookingConfirmation />} />
+            <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
             <Route path="/bookings/:viewingId" element={<BookingPage userId={1} />} />
             <Route path="/cancel-booking" element={<CancelBookingPage />} />
           </Routes>
