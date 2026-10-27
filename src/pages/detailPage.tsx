@@ -281,7 +281,7 @@ function formatDate(dateString: string) {
           <div className="flex flex-wrap items-center gap-2 max-[600px]:items-stretch">
             <Link
               to={`/bookings/${selectedViewingId}`}
-              className="ml-auto inline-flex min-h-8.5 items-center justify-center rounded-[3px] bg-[#d7b83e] px-3 text-xs font-semibold text-[#181818] no-underline transition-colors hover:bg-[#ebd05c] max-[600px]:ml-0"
+              className="ml-auto inline-flex min-h-8.5 items-center justify-center rounded-[3px] bg-[#d7b83e] px-3 text-xs font-semibold !text-[#000000] no-underline transition-colors hover:bg-[#ebd05c] max-[600px]:ml-0"
             >
               Välj platser
             </Link>
