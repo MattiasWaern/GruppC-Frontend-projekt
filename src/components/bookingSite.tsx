@@ -50,40 +50,43 @@ function toSeat(raw: ApiSeat): Seat {
     };
 }
 
-const SeatIcon: React.FC<{ className?: string }> = ({
+// ikonerna för sittplatserna, rygg och sits + lagt till checkmark om platsen är vald
+const SeatIcon: React.FC<{ className?: string; isSelected?: boolean }> = ({
     className = '',
+    isSelected = false,
 }) => (
     <svg
-        viewBox="0 0 32 36"
+        viewBox="0 0 40 40"
         className={`h-8 w-7 shrink-0 ${className}`}
         fill="currentColor"
         aria-hidden="true"
     >
-        <rect x="9" y="2" width="14" height="16" rx="4" />
-        <rect x="4" y="15" width="24" height="13" rx="3" />
-        <rect x="2" y="17" width="4" height="11" rx="1" />
-        <rect x="26" y="17" width="4" height="11" rx="1" />
-        <rect x="8" y="28" width="4" height="6" rx="1" />
-        <rect x="20" y="28" width="4" height="6" rx="1" />
-        <rect x="7" y="34" width="18" height="2" rx="1" />
         <rect
-            x="12"
-            y="6"
-            width="8"
-            height="2"
-            rx="1"
-            fill="#181818"
-            opacity=".6"
+            x="10"
+            y="3"
+            width="20"
+            height="11"
+            rx="2"
         />
+
         <rect
-            x="8"
-            y="20"
-            width="16"
-            height="2"
-            rx="1"
-            fill="#181818"
-            opacity=".6"
+            x="6"
+            y="13"
+            width="28"
+            height="23"
+            rx="3"
         />
+
+        {isSelected && (
+            <path
+                d="M13 23 L18 28 L27 19"
+                fill="none"
+                stroke="#111111"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        )}
     </svg>
 );
 
@@ -112,6 +115,10 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
     const [loadingSeats, setLoadingSeats] = useState(true);
     const [loadingMovie, setLoadingMovie] = useState(true);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+    window.scrollTo(0, 0);
+}, []);
 
     useEffect(() => {
         if (!validViewingId) {
@@ -282,9 +289,9 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
     setError('');
 
     const ticketTypeIds = {
-        adult: 1,
-        child: 2,
-        senior: 3,
+        adult: 3,
+        child: 1,
+        senior: 2,
     };
 
     const tickets = selectedSeatIds.map((seatId, index) => {
@@ -377,58 +384,48 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
                                         {prices[type]} kr
                                     </span>
 
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            handleTicketChange(type, 1)
-                                        }
-                                        aria-label={`Lägg till ${label.toLowerCase()}`}
-                                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white hover:text-[#e0bd38]"
-                                    >
-                                        <svg
-                                            viewBox="0 0 24 24"
-                                            className="h-5 w-5"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="1.8"
+                                    
+                                        <button
+                                            type="button"
+                                            onClick={() => handleTicketChange(type, -1)}
+                                            disabled={ticketCounts[type] === 0}
+                                            aria-label={`Ta bort ${label.toLowerCase()}`}
+                                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white hover:text-[#e0bd38] disabled:opacity-40"
                                         >
-                                            <circle
-                                                cx="12"
-                                                cy="12"
-                                                r="9"
-                                            />
-                                            <path d="M12 7v10M7 12h10" />
-                                        </svg>
-                                    </button>
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                className="h-5 w-5"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.8"
+                                            >
+                                                <circle cx="12" cy="12" r="9" />
+                                                <path d="M7 12h10" />
+                                            </svg>
+                                        </button>
 
-                                    <span className="w-4 text-center text-sm tabular-nums">
-                                        {ticketCounts[type]}
-                                    </span>
+                                        <span className="w-4 text-center text-sm tabular-nums">
+                                            {ticketCounts[type]}
+                                        </span>
 
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            handleTicketChange(type, -1)
-                                        }
-                                        disabled={ticketCounts[type] === 0}
-                                        aria-label={`Ta bort ${label.toLowerCase()}`}
-                                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white hover:text-[#e0bd38] disabled:opacity-40"
-                                    >
-                                        <svg
-                                            viewBox="0 0 24 24"
-                                            className="h-5 w-5"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="1.8"
+                                        <button
+                                            type="button"
+                                            onClick={() => handleTicketChange(type, 1)}
+                                            aria-label={`Lägg till ${label.toLowerCase()}`}
+                                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white hover:text-[#e0bd38]"
                                         >
-                                            <circle
-                                                cx="12"
-                                                cy="12"
-                                                r="9"
-                                            />
-                                            <path d="M7 12h10" />
-                                        </svg>
-                                    </button>
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                className="h-5 w-5"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.8"
+                                            >
+                                                <circle cx="12" cy="12" r="9" />
+                                                <path d="M12 7v10M7 12h10" />
+                                            </svg>
+                                        </button>
+
                                 </div>
                             ))}
                         </div>
@@ -464,31 +461,31 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
                 </div>
 
                 <section>
-                    <h2 className="mb-2 font-serif text-2xl font-normal text-[#d9bd62] sm:text-3xl">
+                    <h2 className="mb-2 text-center font-serif text-2xl font-normal text-[#d9bd62] sm:text-3xl">
                         Välj platser
                     </h2>
 
                     <div className="bg-[#1b1b1b] px-3 pb-5 pt-3 sm:px-6 sm:pb-6">
-                        <div className="mb-6 flex items-center justify-center gap-5 sm:gap-10">
-                            <div className="flex flex-col items-center gap-1 text-white">
+                        <div className="mb-6 flex w-fit mx-auto items-center gap-3">
+                            <div className="flex w-24 flex-col items-center gap-1 text-white">
                                 <span className="font-serif text-sm sm:text-lg">
                                     Upptagen
                                 </span>
-                                <SeatIcon className="text-[#c53235]" />
+                                <SeatIcon className="text-[#D46A70]" />
                             </div>
 
-                            <div className="flex flex-col items-center gap-1 text-white">
+                            <div className="flex w-24 flex-col items-center gap-1 text-white">
                                 <span className="font-serif text-sm sm:text-lg">
                                     Ledig
                                 </span>
-                                <SeatIcon className="text-[#91c832]" />
+                                <SeatIcon className="text-[#A8C982]" />
                             </div>
 
-                            <div className="flex flex-col items-center gap-1 text-white">
+                            <div className="flex w-24 flex-col items-center gap-1 text-white">
                                 <span className="font-serif text-sm sm:text-lg">
                                     Vald
                                 </span>
-                                <SeatIcon className="text-[#e5c86a]" />
+                                <SeatIcon className="text-[#E5C86A]" isSelected={true} />
                             </div>
                         </div>
 
@@ -520,13 +517,13 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
                                     return (
                                         <div
                                             key={rowNumber}
-                                            className="grid grid-cols-[20px_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[32px_minmax(0,1fr)] sm:gap-3"
+                                            className="flex items-center justify-center gap-3 sm:gap-4"
                                         >
-                                            <span className="font-serif text-xl text-[#e6c96a] sm:text-2xl">
+                                            <span className="shrink-0 font-serif text-xl text-[#e6c96a] sm:text-2xl">
                                                 {rowNumber}
                                             </span>
 
-                                            <div className="flex items-center justify-center gap-0 sm:gap-0.5">
+                                            <div className="flex items-center gap-0 sm:gap-0.5">
                                                 {rowSeats.map((seat) => {
                                                     const isSelected =
                                                         selectedSeatIds.includes(
@@ -535,10 +532,10 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
 
                                                     const seatColor =
                                                         seat.isBooked
-                                                            ? 'text-[#c53235]'
+                                                            ? 'text-[#D46A70]'
                                                             : isSelected
-                                                              ? 'text-[#e5c86a]'
-                                                              : 'text-[#91c832]';
+                                                              ? 'text-[#E5C86A]'
+                                                              : 'text-[#A8C982]';
 
                                                     return (
                                                         <button
@@ -554,7 +551,7 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
                                                             aria-pressed={isSelected}
                                                             className={`flex items-center justify-center rounded-md transition hover:brightness-125 focus-visible:outline focus-visible:outline-[#e5c86a] disabled:cursor-not-allowed ${seatColor}`}
                                                         >
-                                                            <SeatIcon />
+                                                            <SeatIcon isSelected={isSelected} />
                                                         </button>
                                                     );
                                                 })}
