@@ -7,11 +7,18 @@ const router = Router();
 
 router.get("/", async (_req, res) => {
   try {
-    const [rows] = await db.query<Viewing[]>(`
-      SELECT *
-      FROM viewing
-      ORDER BY viewing_date, viewing_start_time
-      `);
+    const [rows] = await db.query(`
+  SELECT
+    viewingId,
+    DATE_FORMAT(viewing_date, '%Y-%m-%d') AS viewing_date,
+    viewing_start_time,
+    movieId,
+    eventId,
+    theaterId,
+    viewing
+  FROM viewing
+  ORDER BY viewing_date, viewing_start_time
+`);
     res.json(rows);
   } catch (error) {
     console.error("Kunde inte hämta visningar:", error);

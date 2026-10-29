@@ -105,9 +105,18 @@ export default function MovieDetailsPage() {
 
         const viewingsData: Viewing[] = await viewingsResponse.json();
         const theatersData: Theater[] = await theatersResponse.json();
-        const movieViewings = viewingsData.filter(
-          (viewing) => viewing.movieId === Number(id),
-        );
+        const now = new Date();
+
+const movieViewings = viewingsData.filter((viewing) => {
+  const viewingDateTime = new Date(
+    `${viewing.viewing_date.toString().slice(0, 10)}T${viewing.viewing_start_time.slice(0, 8)}`,
+  );
+
+  return (
+    viewing.movieId === Number(id) &&
+    viewingDateTime > now
+  );
+});
 
         setViewings(movieViewings);
         setTheaters(theatersData);
@@ -137,7 +146,12 @@ return theaters.find((theater) => theater.theaterId === theaterId)?.name || `sal
 }
 
 function formatDate(dateString: string) {
-  const date = new Date(dateString);
+  const [year, month, day] = dateString
+    .slice(0, 10)
+    .split("-")
+    .map(Number);
+
+  const date = new Date(year, month - 1, day);
   return date.toLocaleDateString("sv-SE", {
     weekday: "short",
     day: "numeric",
