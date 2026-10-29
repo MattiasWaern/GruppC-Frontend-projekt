@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 import type { Movie } from "../types/movie";
 import type { Viewing } from "../types/viewing";
 import type { Theater } from "../types/theater";
+import formatTime from "../utils/formatTime";
 
 function toCssBackground(value?: string | null) {
   if (!value) return undefined;
@@ -181,7 +182,7 @@ function formatDate(dateString: string) {
           </h1>
 
           <p className="my-1 text-xl text-[#e4ce83]">
-            {movie.duration_minutes} min Från {movie.age_limit} år
+            {formatTime(movie)} min Från {movie.age_limit} år
           </p>
 
           {movie.genres?.length > 0 && (
