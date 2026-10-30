@@ -2,9 +2,22 @@ import { Router } from "express";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import db from "../db.js";
 import type { Booking } from "../types/booking.js";
-import { randomBytes } from "node:crypto";
+import { randomInt } from "node:crypto";
 
 const router = Router();
+
+
+function generateBookingNumber(): string {
+  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  const randomPart = Array.from(
+    { length: 5 },
+    () => characters[randomInt(characters.length)]
+  ).join("");
+
+  return `FV-${randomPart}`;
+}
+
 
 interface BookingRow extends Booking, RowDataPacket {}
 
@@ -241,8 +254,8 @@ router.post("/", async (req, res) => {
     }
 
     
-  const bookingNumber = `B-${randomBytes(16).toString("hex").toUpperCase()}`;
-
+    const bookingNumber = generateBookingNumber();
+    
     const bookingDate = new Date().toISOString();
 
     const [result] = await conn.query<ResultSetHeader>(
