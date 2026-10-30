@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import type { Movie } from "../types/movie";
+import formatTime from "../utils/formatTime";
 
 export function MoviesPage() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -98,6 +99,12 @@ export function MoviesPage() {
 
                   <p className="mt-2 text-sm text-[#c7b98c]">
                     {movie.genres?.join(", ")}
+                  </p>
+                  <p>
+                    {movie.duration_minutes} min
+                  </p>
+                  <p>
+                    {movie.age_limit} år
                   </p>
                 </div>
               </Link>
