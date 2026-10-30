@@ -219,35 +219,53 @@ function formatDate(dateString: string) {
     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/10" />
 
     {/* Trailerknapp */}
-    {movie.trailer && (
-      <a
-        href={movie.trailer}
-        target="_blank"
-        rel="noreferrer"
-        aria-label={`Se trailer för ${movie.title}`}
-        className="absolute inset-0 flex flex-col items-center justify-center gap-3 font-sans text-sm font-semibold text-white"
-      >
-        <span className="flex h-16 w-16 items-center justify-center rounded-full border border-[#e4ce83]/80 bg-black/65 pl-1 text-xl text-[#e4ce83] shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-[#d7b83e] hover:text-[#181818]">
-          ▶
-        </span>
+      {movie.trailer && (
+        <a
+          href={movie.trailer}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Se trailer för ${movie.title}`}
+          className="group/trailer absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/10 font-sans transition-colors duration-300 hover:bg-black/30"
+        >
+          {/* Playknapp */}
+          <span className="flex h-20 w-20 items-center justify-center rounded-full border border-[#d7b83e] bg-[#171717]/80 shadow-xl shadow-black/40 backdrop-blur-md transition-all duration-300 group-hover/trailer:scale-110 group-hover/trailer:border-[#f1e3be] group-hover/trailer:bg-[#d7b83e]">
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="ml-1 h-8 w-8 text-[#e4ce83] transition-colors duration-300 group-hover/trailer:text-[#181818]"
+              aria-hidden="true"
+            >
+              <path d="M8 5.5v13l10-6.5-10-6.5Z" />
+            </svg>
+          </span>
 
-        <span className="rounded-md bg-black/50 px-4 py-2 text-sm backdrop-blur-sm">
-          Se trailer
-        </span>
-      </a>
-    )}
+          {/* Text */}
+          <span className="text-sm font-semibold uppercase tracking-[0.25em] text-[#f1e3be] drop-shadow-lg">
+            Se trailer
+          </span>
+          <p>
+            {movie.title}
+          </p>
+        </a>
+      )}
   </div>
 </section>
 
         {/* Filmbeskrivning */}
-        <p className="mx-auto mt-4 max-w-140 whitespace-pre-line text-s leading-[1.55] text-[#e4ce83]">
+      <section className="mx-auto mt-8 max-w-3xl rounded-xl border border-[#6c5a31]/30 bg-black/25 p-6 backdrop-blur-sm sm:p-8">
+        <h2 className="mb-4 text-2xl text-[#f1e3be]">
+          Om filmen
+        </h2>
+
+        <p className="whitespace-pre-line font-sans text-sm leading-7 text-[#e4dfd3] sm:text-base">
           {movie.description}
         </p>
+      </section>
 
         {/* Biljettpanel FÅR KOPPLA DETTA TILL RÄTT DATUM SENARE*/}
         <section
           id="biljetter"
-          className="mx-auto mt-14 w-full max-w-120nded-xl border border-[#6c5a31] bg-[#191919] p-4.5 font-sans text-[#e4ce83] sm:mt-13.75 sm:p-6"
+          className="mx-auto mt-14 w-full max-w-3xl rounded-2xl border border-[#6c5a31]/60 bg-[#191919]/95 p-5 font-sans text-[#e4ce83] shadow-2xl shadow-black/30 sm:p-8"
         >
           <h2 className="mb-4.5 text-base font-normal">Biljetter</h2>
 
