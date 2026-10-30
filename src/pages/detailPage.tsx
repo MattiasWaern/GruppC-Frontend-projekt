@@ -168,13 +168,13 @@ function formatDate(dateString: string) {
   }
 
   return (
-    <main className="min-h-screen bg-[#121212] font-serif text-[#e4ce83]">
-      <div
-        className="mx-auto min-h-screen w-full max-w-200 px-[5%] py-6 sm:px-8 lg:px-12 lg:py-7.5"
-        style={{
-          background: toCssBackground(movie.background_color),
-        }}
-      >
+        <main
+          className="min-h-screen w-full font-serif text-[#e4ce83]"
+          style={{
+            background: toCssBackground(movie.background_color) ?? "#121212",
+          }}
+        >
+    <div className="mx-auto min-h-screen w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-12">
         {/* Filmens titel och information */}
         <section className="mb-4.5 text-center">
           <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-medium text-[#e5d27c]">
