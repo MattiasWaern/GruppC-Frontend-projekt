@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import type { Movie } from "../types/movie";
-import formatTime from "../utils/formatTime";
 
 export function MoviesPage() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -12,107 +12,212 @@ export function MoviesPage() {
   const search = searchParams.get("search")?.trim() ?? "";
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function fetchMovies() {
       try {
         setLoading(true);
+        setError("");
 
-        const response = await fetch("/api/movies");
+        const response = await fetch("/api/movies", {
+          signal: controller.signal,
+        });
 
         if (!response.ok) {
-          throw new Error("Kunde inte hämta filmer.");
+          throw new Error(
+            `Kunde inte hämta filmer (${response.status}).`
+          );
         }
 
         const data: Movie[] = await response.json();
+
+        if (!Array.isArray(data)) {
+          throw new Error("Ogiltigt svar från servern.");
+        }
+
         setMovies(data);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Något gick fel."
-        );
+        if (
+          err instanceof Error &&
+          err.name !== "AbortError"
+        ) {
+          setError(err.message);
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
 
     fetchMovies();
+
+    return () => controller.abort();
   }, []);
 
-  const filteredMovies = movies.filter((movie) => {
+  const filteredMovies = useMemo(() => {
     const query = search.toLocaleLowerCase("sv-SE");
 
-    const title = movie.title.toLocaleLowerCase("sv-SE");
-    const genres = (movie.genres ?? [])
-      .join(" ")
-      .toLocaleLowerCase("sv-SE");
+    if (!query) return movies;
 
-    return title.includes(query) || genres.includes(query);
-  });
+    return movies.filter((movie) => {
+      const title = (movie.title ?? "")
+        .toLocaleLowerCase("sv-SE");
+
+      const genres = (movie.genres ?? [])
+        .join(" ")
+        .toLocaleLowerCase("sv-SE");
+
+      const description = (movie.description ?? "")
+        .toLocaleLowerCase("sv-SE");
+
+      return (
+        title.includes(query) ||
+        genres.includes(query) ||
+        description.includes(query)
+      );
+    });
+  }, [movies, search]);
 
   if (loading) {
-    return <p className="p-10 text-white">Laddar filmer...</p>;
+    return (
+      <main className="min-h-screen bg-[#121212] p-10 text-center text-[#e4ce83]">
+        Laddar filmer...
+      </main>
+    );
   }
 
   if (error) {
-    return <p className="p-10 text-red-400">{error}</p>;
+    return (
+      <main className="min-h-screen bg-[#121212] p-10 text-center text-red-400">
+        {error}
+      </main>
+    );
   }
 
-  return (
-    <main className="min-h-screen bg-[#121212] px-6 pb-12 pt-28 text-[#e4ce83]">
-      <div className="mx-auto max-w-7xl">
+return (
+  <main className="min-h-screen bg-[#121212] px-4 pb-20 pt-24 font-serif text-[#e4ce83] sm:px-8 lg:px-12">
+    <div className="mx-auto max-w-7xl">
 
-        <h1 className="mb-6 font-serif text-3xl">
-          {search ? `Sökresultat för "${search}"` : "Alla filmer"}
+      {/* Sidhuvud */}
+      <header className="mb-10 border-b border-[#6c5a31]/50 pb-8">
+
+        <h1 className="mb-3 text-4xl font-medium tracking-wide text-[#f1e3be] sm:text-5xl">
+          {search
+            ? `Sökresultat för "${search}"`
+            : "Upptäck filmer"}
         </h1>
 
-        <p className="mb-6 text-sm text-[#c7b98c]">
-          {filteredMovies.length} filmer hittades
+        <p className="font-sans text-sm text-[#aaa59b] sm:text-base">
+          {search
+            ? `${filteredMovies.length} ${
+                filteredMovies.length === 1
+                  ? "film hittades"
+                  : "filmer hittades"
+              }`
+            : "Utforska vårt filmutbud och hitta din nästa bioupplevelse."}
         </p>
+      </header>
 
-        {filteredMovies.length === 0 ? (
-          <div className="rounded-xl border border-[#806b36] p-8 text-center">
-            <p>Inga filmer matchade din sökning.</p>
+      {/* Tillbaka till alla filmer vid sökning */}
+      {search && (
+        <div className="mb-8">
+          <Link
+            to="/movies"
+            className="inline-flex items-center gap-2 font-sans text-sm text-[#d7b83e] transition hover:text-[#f1e3be]"
+          >
+            <span aria-hidden="true">←</span>
+            Visa alla filmer
+          </Link>
+        </div>
+      )}
 
+      {/* Inga sökresultat */}
+      {filteredMovies.length === 0 ? (
+        <div className="flex min-h-72 flex-col items-center justify-center rounded-xl border border-[#6c5a31]/50 bg-[#1b1b1b] px-6 text-center">
+          <h2 className="mb-3 text-2xl text-[#f1e3be]">
+            Inga filmer hittades
+          </h2>
+
+          <p className="mb-6 max-w-md font-sans text-sm leading-relaxed text-[#aaa59b]">
+            Vi kunde inte hitta någon film som matchade din sökning.
+            Prova ett annat sökord eller utforska alla våra filmer.
+          </p>
+
+          <Link
+            to="/movies"
+            className="rounded-md bg-[#d7b83e] px-6 py-3 font-sans text-sm font-semibold text-[#181818] transition hover:bg-[#ebd05c]"
+          >
+            Visa alla filmer
+          </Link>
+        </div>
+      ) : (
+
+        /* Filmkort */
+        <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3 xl:gap-9">
+          {filteredMovies.map((movie) => (
             <Link
-              to="/movies"
-              className="mt-4 inline-block text-[#e5ca7a] underline"
+              key={movie.movieId}
+              to={`/movies/${movie.movieId}`}
+              className="group overflow-hidden rounded-xl border border-[#6c5a31]/40 bg-[#1b1b1b] shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:border-[#d7b83e] hover:shadow-xl hover:shadow-black/40"
             >
-              Visa alla filmer
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredMovies.map((movie) => (
-              <Link
-                key={movie.movieId}
-                to={`/movies/${movie.movieId}`}
-                className="overflow-hidden rounded-xl border border-[#806b36] bg-[#1d1d1d] transition hover:border-[#e5ca7a]"
-              >
-                <img
-                  src={movie.poster}
-                  alt={movie.title}
-                  className="aspect-video w-full object-cover"
-                />
 
-                <div className="p-5">
-                  <h2 className="font-serif text-xl">
-                    {movie.title}
-                  </h2>
+              {/* Filmbild */}
+              <div className="relative aspect-[3/4] overflow-hidden bg-[#252525]">
+                {movie.poster ? (
+                  <img
+                    src={movie.poster}
+                    alt={`Affisch för ${movie.title}`}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center px-5 text-center text-[#c9a75b]">
+                    Ingen filmaffisch tillgänglig
+                  </div>
+                )}
 
-                  <p className="mt-2 text-sm text-[#c7b98c]">
-                    {movie.genres?.join(", ")}
-                  </p>
-                  <p>
+                {/* Mörk gradient längst ner */}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                {/* Åldersgräns */}
+                <span className="absolute right-4 top-4 rounded-md border border-white/20 bg-black/70 px-3 py-1 font-sans text-xs text-white backdrop-blur-sm">
+                  {movie.age_limit} år
+                </span>
+              </div>
+
+              {/* Filminformation */}
+              <div className="flex min-h-40 flex-col p-5 sm:p-6">
+                <h2 className="mb-2 text-2xl font-medium text-[#f1e3be] transition-colors group-hover:text-[#d7b83e]">
+                  {movie.title}
+                </h2>
+
+                <p className="mb-4 font-sans text-sm text-[#b9a980]">
+                  {movie.genres?.length
+                    ? movie.genres.join(" · ")
+                    : "Film"}
+                </p>
+
+                <div className="mt-auto flex items-center justify-between border-t border-[#6c5a31]/40 pt-4">
+                  <span className="font-sans text-sm text-[#aaa59b]">
                     {movie.duration_minutes} min
-                  </p>
-                  <p>
-                    {movie.age_limit} år
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+                  </span>
 
-      </div>
-    </main>
-  );
+                  <span className="flex items-center gap-2 font-sans text-sm font-medium text-[#d7b83e]">
+                    Läs mer
+                    <span
+                      aria-hidden="true"
+                      className="transition-transform duration-300 group-hover:translate-x-1"
+                    >
+                      →
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  </main>
+);
 }
