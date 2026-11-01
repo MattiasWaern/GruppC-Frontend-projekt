@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useLocation, useParams } from "react-router";
 
 interface Booking {
   bookingId: number;
@@ -30,6 +30,9 @@ interface BookingTickets {
 
 export default function BookingConfirmation() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const emailSent = (location.state as { emailSent?: boolean } | null)
+    ?.emailSent;
   const [booking, setBooking] = useState<Booking | null>(null);
   const [ticketData, setTicketData] = useState<BookingTickets | null>(null);
   const [error, setError] = useState("");
@@ -101,6 +104,18 @@ if (viewingData.movieId) {
         <p className="mb-8 text-gray-300">
           Din bokning är registrerad. Spara ditt bokningsnummer.
         </p>
+
+        {emailSent === true && (
+          <p className="mb-6 text-green-300">
+            En bokningsbekräftelse har skickats till din e-postadress.
+          </p>
+        )}
+        {emailSent === false && (
+          <p className="mb-6 text-amber-300">
+            Bokningen är klar, men e-postbekräftelsen kunde inte skickas.
+            Kontakta biografen om du behöver hjälp.
+          </p>
+        )}
 
         {viewing && (
     <section className="mb-8 space-y-2">

@@ -326,7 +326,9 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
             throw new Error(data.error || 'Kunde inte skapa bokningen.');
         }
 
-        navigate(`/booking-confirmation/${data.bookingId}`);
+        navigate(`/booking-confirmation/${data.bookingId}`, {
+            state: { emailSent: data.emailSent },
+        });
     } catch (err) {
         setError(
             err instanceof Error
