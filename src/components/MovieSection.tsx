@@ -43,7 +43,7 @@ export default function MovieSection() {
       <section
   id="movies"
   aria-labelledby="movies-heading"
-  className="px-4 py-10 sm:px-6 lg:px-8 md:ml-64"
+  className="py-10"
 >
         <h2 id="movies-heading" className="mb-6 text-2xl font-bold">
           Alla filmer
@@ -58,7 +58,7 @@ export default function MovieSection() {
       <section
   id="movies"
   aria-labelledby="movies-heading"
-  className="px-4 py-10 sm:px-6 lg:px-8 md:ml-64"
+  className="py-10"
 >
         <h2 id="movies-heading" className="mb-6 text-2xl font-bold">
           Alla filmer
@@ -72,7 +72,7 @@ export default function MovieSection() {
     <section
   id="movies"
   aria-labelledby="movies-heading"
-  className="px-4 py-10 sm:px-6 lg:px-8 md:ml-64"
+  className="py-10"
 >
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h2 id="movies-heading" className="text-2xl font-bold">
@@ -87,7 +87,7 @@ export default function MovieSection() {
       {movies.length === 0 ? (
         <p>Det finns inga filmer att visa just nu.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-5">
           {movies.map((movie) => (
             <Link
   key={movie.movieId}
@@ -98,7 +98,7 @@ export default function MovieSection() {
                 <img
                   src={movie.poster}
                   alt={`Filmaffisch för ${movie.title}`}
-                  className="h-72 w-full object-cover"
+                  className="aspect-[2/3] w-full object-cover"
                   loading="lazy"
                 />
               ) : (

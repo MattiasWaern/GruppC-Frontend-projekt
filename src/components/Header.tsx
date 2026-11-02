@@ -17,8 +17,8 @@ export default function Header() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#806b36] bg-[#1d1d1d]">
-      <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between gap-4 px-4 md:px-8">
+    <header className="fixed inset-x-0 top-0 z-50 h-[76px] border-b border-[#806b36] bg-[#1d1d1d]">
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-4 px-4 md:px-8">
 
 
         <button

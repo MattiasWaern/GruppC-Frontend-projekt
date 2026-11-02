@@ -1,8 +1,9 @@
+
 import { Ticket } from 'lucide-react';
 
 export default function BookingBanner() {
   return (
-    <section className="hidden md:block px-3 py-5 sm:px-6 md:ml-64">
+    <section className="hidden md:block py-5">
       <div className="flex min-h-[114px] items-center gap-3 rounded-lg border border-[#806b36] bg-[#292929] px-3 py-5 sm:gap-4 sm:px-5">
         <Ticket
           className="h-12 w-12 shrink-0 text-[#e5ca7a] sm:h-14 sm:w-14"
