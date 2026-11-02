@@ -7,6 +7,19 @@ import { sendBookingConfirmationEmail } from "../email.js";
 
 const router = Router();
 
+
+function generateBookingNumber(): string {
+  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  const randomPart = Array.from(
+    { length: 5 },
+    () => characters[randomInt(characters.length)]
+  ).join("");
+
+  return `FV-${randomPart}`;
+}
+
+
 interface BookingRow extends Booking, RowDataPacket {}
 
 interface TicketInput {
@@ -242,8 +255,8 @@ router.post("/", async (req, res) => {
     }
 
     
-  const bookingNumber = `B-${randomBytes(16).toString("hex").toUpperCase()}`;
-
+    const bookingNumber = generateBookingNumber();
+    
     const bookingDate = new Date().toISOString();
 
     const [result] = await conn.query<ResultSetHeader>(
