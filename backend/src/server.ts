@@ -23,8 +23,6 @@ try {
 }
 // ---
 
-
-
 const app = express()
 const PORT = 3000;
 
@@ -50,4 +48,3 @@ app.use('/api/seats', seatsRouter)
 app.listen(PORT, () => {
   console.log(`Backend Körs på http://localhost:${PORT} `)
 })
-

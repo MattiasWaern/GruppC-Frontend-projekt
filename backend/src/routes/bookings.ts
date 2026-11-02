@@ -2,7 +2,8 @@ import { Router } from "express";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import db from "../db.js";
 import type { Booking } from "../types/booking.js";
-import { randomInt } from "node:crypto";
+import { randomBytes } from "node:crypto";
+import { sendBookingConfirmationEmail } from "../email.js";
 
 const router = Router();
 
@@ -288,6 +289,28 @@ router.post("/", async (req, res) => {
       0
     );
 
+    let emailSent = false;
+
+    try {
+      const [users] = await conn.query<RowDataPacket[]>(
+        "SELECT email FROM users WHERE userId = ?",
+        [userId]
+      );
+      const email = users[0]?.email;
+
+      if (typeof email !== "string" || !email.trim()) {
+        throw new Error("Användaren saknar en giltig e-postadress");
+      }
+
+      await sendBookingConfirmationEmail({
+        to: email.trim(),
+        bookingNumber,
+      });
+      emailSent = true;
+    } catch (error) {
+      console.error("Kunde inte skicka bokningsbekräftelsen:", error);
+    }
+
     res.status(201).json({
       bookingId,
       userId,
@@ -296,6 +319,7 @@ router.post("/", async (req, res) => {
       booking_confirmation: "confirmed",
       booking_date: bookingDate,
       seatIds,
+      emailSent,
       tickets: tickets.map((t) => ({
         ...t,
         price: priceById.get(t.ticketTypeId),
