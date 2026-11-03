@@ -16,7 +16,7 @@ const navigationItems = [
   { label: "Hem", href: "/", Icon: House },
   { label: "Boka", href: "#movies", Icon: CalendarDays },
   { label: "Om oss", href: "/om-oss", Icon: Info },
-  { label: "Konto", href: "/konto", Icon: UserRound },
+  { label: "Konto", href: "/profil", Icon: UserRound },
 ];
 
 export default function MobileNavigation() {
