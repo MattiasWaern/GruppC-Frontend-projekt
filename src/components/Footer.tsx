@@ -61,7 +61,7 @@ export default function Footer() {
         ))}
       </nav>
 
-      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-6 py-10 sm:grid-cols-4 md:ml-64">
+      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-6 py-10 sm:grid-cols-4 ">
         <div className="col-span-2 md:col-span-1">
           <a href="#hem" className="font-serif text-xl font-bold tracking-wide">
             Filmvisarna
@@ -93,7 +93,7 @@ export default function Footer() {
         ))}
       </div>
 
-       <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 px-6 py-4 text-[10px] text-white/40 sm:flex-row md:ml-64">
+       <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 px-6 py-4 text-[10px] text-white/40 sm:flex-row">
         <p>© 2026 Filmvisarna. Alla rättigheter reserverade.</p>
         <div className="flex flex-wrap justify-center gap-4">
           <a href="#villkor" className="hover:text-[#e5ca7a]">Villkor</a>
