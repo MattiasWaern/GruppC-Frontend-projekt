@@ -30,7 +30,7 @@ export default function Header() {
           className="shrink-0 cursor-pointer"
         >
           <img
-            src="/images/logo.png"
+            src="/images/Logo.png"
             alt="Filmvisarna"
             className="h-auto w-40 object-contain sm:w-48 md:w-56"
           />
