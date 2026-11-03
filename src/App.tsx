@@ -12,7 +12,7 @@ import BookingConfirmation from './pages/BookingConfirmation';
 import BookingPage from './components/bookingSite';
 import CancelBookingPage from './pages/CancelBookingPage';
 import { MoviesPage } from './pages/MoviesPage';
-
+import AboutUs from './pages/AboutUs';
 function HomePage() {
   return (
     <>
@@ -43,6 +43,7 @@ export default function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/movies/:id" element={<MovieDetails />} />
               <Route path="/movies" element={<MoviesPage />} />
+              <Route path="/om-oss" element={<AboutUs />} />
               <Route path="/booking-confirmation" element={<BookingConfirmation />} />
               <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
               <Route path="/bookings/:viewingId" element={<BookingPage userId={1} />} />
