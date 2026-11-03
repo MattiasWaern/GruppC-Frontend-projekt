@@ -47,7 +47,7 @@ export default function App() {
               <Route path="/movies" element={<MoviesPage />} />
               <Route path="/booking-confirmation" element={<BookingConfirmation />} />
               <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
-              <Route path="/bookings/:viewingId" element={<BookingPage userId={1} />} />
+              <Route path="/bookings/:viewingId" element={<BookingPage />} />
               <Route path="/cancel-booking" element={<CancelBookingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
