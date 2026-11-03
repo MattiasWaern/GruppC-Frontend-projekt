@@ -12,6 +12,8 @@ import BookingConfirmation from './pages/BookingConfirmation';
 import BookingPage from './components/bookingSite';
 import CancelBookingPage from './pages/CancelBookingPage';
 import { MoviesPage } from './pages/MoviesPage';
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
 
 function HomePage() {
   return (
@@ -47,6 +49,8 @@ export default function App() {
               <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
               <Route path="/bookings/:viewingId" element={<BookingPage userId={1} />} />
               <Route path="/cancel-booking" element={<CancelBookingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
             </Routes>
 
           </main>
