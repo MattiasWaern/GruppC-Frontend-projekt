@@ -16,7 +16,7 @@ const navigationItems = [
   { label: "Hem", href: "/", Icon: House },
   { label: "Boka", href: "#movies", Icon: CalendarDays },
   { label: "Om oss", href: "/om-oss", Icon: Info },
-  { label: "Konto", href: "/konto", Icon: UserRound },
+  { label: "Konto", href: "/profil", Icon: UserRound },
 ];
 
 export default function MobileNavigation() {
@@ -40,7 +40,7 @@ export default function MobileNavigation() {
     if (!query) return;
 
     setSearchOpen(false);
-    navigate(`/?search=${encodeURIComponent(query)}`);
+    navigate(`movies/?search=${encodeURIComponent(query)}`);
   }
 
 function handleBookingClick() {
@@ -200,15 +200,15 @@ function handleBookingClick() {
                md:flex-row md:justify-start
                md:gap-3 md:px-2 lg:px-3
               "
->
-  <Icon
-    aria-hidden="true"
-    size={24}
-    strokeWidth={1.7}
-    className="shrink-0"
-  />
-  <span className="text-xs md:text-sm">{label}</span>
-</Link>
+            >
+              <Icon
+                aria-hidden="true"
+                size={24}
+                strokeWidth={1.7}
+                className="shrink-0"
+              />
+              <span className="text-xs md:text-sm">{label}</span>
+            </Link>
           ))}
       </nav>
     </>

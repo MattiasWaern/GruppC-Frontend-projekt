@@ -2,7 +2,8 @@ import { Router } from "express";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import db from "../db.js";
 import type { Booking } from "../types/booking.js";
-import { randomBytes } from "node:crypto";
+import { randomInt } from "node:crypto";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 import { sendBookingConfirmationEmail } from "../email.js";
 
 const router = Router();
@@ -19,6 +20,25 @@ function generateBookingNumber(): string {
   return `FV-${randomPart}`;
 }
 
+
+type AuthPayload = JwtPayload & { userId: number };
+function readAuthenticatedUser(req: { headers: { authorization?: string } }):
+  { userId: number | null; invalid: boolean } {
+  const authorization = req.headers.authorization;
+  if (!authorization) return { userId: null, invalid: false };
+  if (!authorization.startsWith("Bearer ")) return { userId: null, invalid: true };
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("JWT_SECRET saknas");
+  try {
+    const payload = jwt.verify(authorization.slice(7), secret) as AuthPayload;
+    if (!Number.isSafeInteger(payload.userId) || payload.userId <= 0) {
+      return { userId: null, invalid: true };
+    }
+    return { userId: payload.userId, invalid: false };
+  } catch {
+    return { userId: null, invalid: true };
+  }
+}
 
 interface BookingRow extends Booking, RowDataPacket {}
 
@@ -132,21 +152,32 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// POST: Skapa en bokning. Varje stol får sin egen biljettyp.
-//
-// Nytt format:  { userId, viewingId, tickets: [{ seatId, ticketTypeId }, ...] }
-// Gammalt format (fungerar fortfarande): { userId, viewingId, seatIds, ticketTypeId }
+// POST: Boka som inloggad användare eller gäst.
 router.post("/", async (req, res) => {
-  const body = req.body as {
-    userId?: number;
+  const body = (req.body ?? {}) as {
     viewingId?: number;
     tickets?: TicketInput[];
     seatIds?: number[];
     ticketTypeId?: number;
+    guestName?: string;
+    guestEmail?: string;
   };
-
-  const userId = body.userId;
+  const auth = readAuthenticatedUser(req);
+  if (auth.invalid) {
+    res.status(401).json({ error: "Ogiltig eller utgången inloggning. Logga in igen." });
+    return;
+  }
+  const userId = auth.userId;
   const viewingId = body.viewingId;
+  const guestName = typeof body.guestName === "string" ? body.guestName.trim() : "";
+  const guestEmail = typeof body.guestEmail === "string" ? body.guestEmail.trim().toLowerCase() : "";
+  if (userId === null && (
+    guestName.length < 2 || guestName.length > 100 ||
+    guestEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)
+  )) {
+    res.status(400).json({ error: "Gäster måste ange namn och giltig e-postadress" });
+    return;
+  }
 
   let tickets: TicketInput[] = [];
 
@@ -160,9 +191,6 @@ router.post("/", async (req, res) => {
   }
 
   if (
-    typeof userId !== "number" ||
-    !Number.isInteger(userId) ||
-    userId <= 0 ||
     typeof viewingId !== "number" ||
     !Number.isInteger(viewingId) ||
     viewingId <= 0 ||
@@ -179,7 +207,7 @@ router.post("/", async (req, res) => {
   ) {
     res.status(400).json({
       error:
-        "userId, viewingId och tickets (unika seatId med ticketTypeId) krävs",
+        "viewingId och tickets (unika seatId med ticketTypeId) krävs",
     });
     return;
   }
@@ -261,10 +289,12 @@ router.post("/", async (req, res) => {
 
     const [result] = await conn.query<ResultSetHeader>(
       `INSERT INTO booking
-       (userId, viewingId, booking_number, booking_confirmation, booking_date, seats)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       (userId, guest_name, guest_email, viewingId, booking_number, booking_confirmation, booking_date, seats)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
+        userId === null ? guestName : null,
+        userId === null ? guestEmail : null,
         viewingId,
         bookingNumber,
         "confirmed",
@@ -290,22 +320,16 @@ router.post("/", async (req, res) => {
     );
 
     let emailSent = false;
-
     try {
-      const [users] = await conn.query<RowDataPacket[]>(
-        "SELECT email FROM users WHERE userId = ?",
-        [userId]
-      );
-      const email = users[0]?.email;
-
-      if (typeof email !== "string" || !email.trim()) {
-        throw new Error("Användaren saknar en giltig e-postadress");
+      let email = guestEmail;
+      if (userId !== null) {
+        const [users] = await db.query<RowDataPacket[]>(
+          "SELECT email FROM users WHERE userId = ?", [userId]
+        );
+        email = typeof users[0]?.email === "string" ? users[0].email : "";
       }
-
-      await sendBookingConfirmationEmail({
-        to: email.trim(),
-        bookingNumber,
-      });
+      if (!email) throw new Error("Ingen e-postadress för bokningsbekräftelse");
+      await sendBookingConfirmationEmail({ to: email, bookingNumber });
       emailSent = true;
     } catch (error) {
       console.error("Kunde inte skicka bokningsbekräftelsen:", error);
@@ -380,10 +404,10 @@ router.delete("/", async (req, res) => {
     const [bookings] = await conn.query<RowDataPacket[]>(
       `SELECT b.bookingId
        FROM booking b
-       INNER JOIN users u ON u.userId = b.userId
-       WHERE booking_number = ? AND u.email = ?
+       LEFT JOIN users u ON u.userId = b.userId
+       WHERE b.booking_number = ? AND (u.email = ? OR b.guest_email = ?)
        FOR UPDATE`,
-      [booking_number.trim().toUpperCase(), email.trim()]
+      [booking_number.trim().toUpperCase(), email.trim(), email.trim()]
     );
 
     if (bookings.length === 0) {
