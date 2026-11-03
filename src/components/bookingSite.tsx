@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 
 type TicketCounts = {
     adult: number;
@@ -90,7 +90,7 @@ const SeatIcon: React.FC<{ className?: string; isSelected?: boolean }> = ({
     </svg>
 );
 
-const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
+const BookingPage: React.FC = () => {
     const navigate = useNavigate();
     const { viewingId: viewingIdParam } = useParams<{
         viewingId: string;
@@ -115,6 +115,11 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
     const [loadingSeats, setLoadingSeats] = useState(true);
     const [loadingMovie, setLoadingMovie] = useState(true);
     const [error, setError] = useState('');
+    const [guestName, setGuestName] = useState('');
+    const [guestEmail, setGuestEmail] = useState('');
+    const [bookingLoading, setBookingLoading] = useState(false);
+    const token = localStorage.getItem('token');
+    const isLoggedIn = Boolean(token);
 
     useEffect(() => {
     window.scrollTo(0, 0);
@@ -286,57 +291,60 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
     };
 
     const handleBooking = async () => {
-    setError('');
+        setError('');
+        if (!canContinue || bookingLoading) return;
 
-    const ticketTypeIds = {
-        adult: 3,
-        child: 1,
-        senior: 2,
-    };
+        const currentToken = localStorage.getItem('token');
+        if (!currentToken) {
+            if (guestName.trim().length < 2) {
+                setError('Ange ditt namn.');
+                return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
+                setError('Ange en giltig e-postadress.');
+                return;
+            }
+        }
 
-    const tickets = selectedSeatIds.map((seatId, index) => {
+        const ticketTypeIds = { adult: 3, child: 1, senior: 2 };
         const ticketTypes = [
             ...Array(ticketCounts.adult).fill(ticketTypeIds.adult),
             ...Array(ticketCounts.child).fill(ticketTypeIds.child),
             ...Array(ticketCounts.senior).fill(ticketTypeIds.senior),
         ];
-
-        return {
+        const tickets = selectedSeatIds.map((seatId, index) => ({
             seatId,
-            ticketTypeId: ticketTypes[index],
-        };
-    });
+            ticketTypeId: ticketTypes[index] as number,
+        }));
 
-    try {
-        const response = await fetch('/api/bookings', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId,
-                viewingId,
-                tickets,
-            }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || 'Kunde inte skapa bokningen.');
+        try {
+            setBookingLoading(true);
+            const response = await fetch('/api/bookings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}),
+                },
+                body: JSON.stringify({
+                    viewingId,
+                    tickets,
+                    ...(!currentToken ? {
+                        guestName: guestName.trim(),
+                        guestEmail: guestEmail.trim(),
+                    } : {}),
+                }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Kunde inte skapa bokningen.');
+            navigate(`/booking-confirmation/${data.bookingId}`, {
+                state: { emailSent: data.emailSent },
+            });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ett fel uppstod när bokningen skulle skapas.');
+        } finally {
+            setBookingLoading(false);
         }
-
-        navigate(`/booking-confirmation/${data.bookingId}`, {
-            state: { emailSent: data.emailSent },
-        });
-    } catch (err) {
-        setError(
-            err instanceof Error
-                ? err.message
-                : 'Ett fel uppstod när bokningen skulle skapas.'
-        );
-    }
-};
+    };
 
     const rows = Array.from(
         new Set(seats.map((seat) => seat.rowNumber))
@@ -593,6 +601,30 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
                     </div>
                 </section>
 
+                {!isLoggedIn && (
+                    <section className="mt-8 rounded-xl border border-[#6c5a31]/50 bg-[#1b1b1b] p-5 font-sans sm:p-8">
+                        <h2 className="mb-2 font-serif text-2xl text-[#f1e3be]">Dina kontaktuppgifter</h2>
+                        <p className="mb-6 text-sm text-[#aaa59b]">Boka som gäst utan att skapa konto.</p>
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                            <div>
+                                <label htmlFor="guestName" className="mb-2 block text-sm">Namn</label>
+                                <input id="guestName" type="text" autoComplete="name" value={guestName}
+                                    onChange={(e) => setGuestName(e.target.value)} placeholder="För- och efternamn"
+                                    className="w-full rounded-lg border border-[#6c5a31]/50 bg-[#292929] px-4 py-3 text-white outline-none focus:border-[#d7b83e]" />
+                            </div>
+                            <div>
+                                <label htmlFor="guestEmail" className="mb-2 block text-sm">E-postadress</label>
+                                <input id="guestEmail" type="email" autoComplete="email" value={guestEmail}
+                                    onChange={(e) => setGuestEmail(e.target.value)} placeholder="namn@exempel.se"
+                                    className="w-full rounded-lg border border-[#6c5a31]/50 bg-[#292929] px-4 py-3 text-white outline-none focus:border-[#d7b83e]" />
+                            </div>
+                        </div>
+                        <p className="mt-6 border-t border-[#6c5a31]/40 pt-5 text-sm text-[#aaa59b]">
+                            Har du redan ett konto? <Link to="/login" className="text-[#d7b83e] hover:underline">Logga in</Link>
+                        </p>
+                    </section>
+                )}
+
                 {error && (
                     <p
                         role="alert"
@@ -605,11 +637,11 @@ const BookingPage: React.FC<{ userId: number }> = ({ userId }) => {
                 <div className="mt-5 flex justify-end">
                     <button
                          type="button"
-                         disabled={!canContinue}
+                         disabled={!canContinue || bookingLoading}
                          onClick={handleBooking}
                         className="w-full rounded-md bg-[#dfbd35] px-7 py-3 font-serif text-base text-black transition hover:bg-[#edd05b] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
                         >
-                         Bekräfta bokning
+                         {bookingLoading ? "Skapar bokning..." : "Bekräfta bokning"}
                     </button>
                 </div>
             </div>

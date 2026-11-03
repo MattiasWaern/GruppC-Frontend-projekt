@@ -1,9 +1,11 @@
 
-import { useNavigate} from "react-router";
+import { useNavigate } from "react-router";
 import type { FormEvent } from "react";
+import { useAuth } from "../context/AuthContext";
 
 export default function Header() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -20,21 +22,21 @@ export default function Header() {
     <header className="fixed inset-x-0 top-0 z-50 h-[76px] border-b border-[#806b36] bg-[#1d1d1d]">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-4 px-4 md:px-8">
 
-
+        {/* Logotyp */}
         <button
           type="button"
           onClick={() => navigate("/")}
           aria-label="Gå till startsidan"
           className="shrink-0 cursor-pointer"
         >
-           <img
-            src="/public/images/logo.png"
+          <img
+            src="/images/Logo.png"
             alt="Filmvisarna"
             className="h-auto w-40 object-contain sm:w-48 md:w-56"
           />
         </button>
 
-
+        {/* Sökfält */}
         <form
           role="search"
           onSubmit={handleSearch}
@@ -75,13 +77,15 @@ export default function Header() {
           </div>
         </form>
 
-         <button
+        {/* Profil eller medlemskap */}
+        <button
           type="button"
-          onClick={() => navigate("/profil")}
-          aria-label="Gå till startsidan"
+          onClick={() =>
+            navigate(user ? "/profil" : "/register")
+          }
           className="shrink-0 cursor-pointer rounded-full border border-[#b99b4c] px-4 py-2 font-serif text-sm text-[#e5ca7a] transition-colors hover:bg-[#b99b4c] hover:text-black"
         >
-           Min profil
+          {user ? "Min profil" : "Bli medlem"}
         </button>
       </div>
     </header>

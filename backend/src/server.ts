@@ -11,7 +11,7 @@ import userRoutes from './routes/users.js'
 import ticketRoutes from './routes/tickets.js'
 import aboutUsRouter from './routes/aboutUs.js'
 import seatsRouter from './routes/seats.js'
-
+import authRoutes from "./routes/auth.js";
 // Kan ta bort detta senare
 try {
   const [rows] = await db.query('SELECT NOW() AS now')
@@ -42,7 +42,7 @@ app.use("/api/admin/roles", rolesRouter);
 app.use('/api/users', userRoutes)
 app.use('/api/theaters', theatersRouter)
 app.use('/api/tickets', ticketRoutes)
-
+app.use("/api/auth", authRoutes);
 app.use('/api/about-us', aboutUsRouter)
 app.use('/api/seats', seatsRouter)
 app.listen(PORT, () => {
