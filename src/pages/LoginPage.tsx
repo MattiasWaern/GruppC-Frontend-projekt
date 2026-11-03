@@ -1,10 +1,11 @@
-
+import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { login } = useAuth();
 
   const message = (
     location.state as { message?: string } | null
@@ -15,51 +16,46 @@ export function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(
-    e: React.FormEvent<HTMLFormElement>
-  ) {
-    e.preventDefault();
-    setError("");
+async function handleSubmit(
+  e: React.FormEvent<HTMLFormElement>
+) {
+  e.preventDefault();
+  setError("");
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(
-          data.error || "Inloggningen misslyckades."
-        );
-      }
-
-      // Enkel lösning för lokal utveckling.
-      // För produktion bör token hanteras med
-      // säkra HttpOnly-cookies.
-      localStorage.setItem("token", data.token);
-      localStorage.setItem(
-        "user",
-        JSON.stringify(data.user)
+    if (!response.ok) {
+      throw new Error(
+        data.error || "Inloggningen misslyckades."
       );
-
-      navigate("/");
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Något gick fel."
-      );
-    } finally {
-      setLoading(false);
     }
+
+    // Sparar användaren och uppdaterar AuthContext
+    login(data.user, data.token);
+
+    // Skickar användaren till startsidan
+    navigate("/");
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Något gick fel."
+    );
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#121212] px-4 py-24 font-sans text-[#e4ce83]">
