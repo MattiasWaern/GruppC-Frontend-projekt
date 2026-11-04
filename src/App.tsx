@@ -8,6 +8,7 @@ import MovieSection from "./components/MovieSection";
 import BookingBanner from "./components/BookingBanner";
 import Footer from "./components/Footer";
 
+import EventPage from './pages/eventPage'
 import MovieDetails from "./pages/detailPage";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import BookingPage from "./components/bookingSite";
@@ -50,6 +51,7 @@ export default function App() {
                 <Route path="/booking-confirmation" element={<BookingConfirmation />}/>
                 <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
                 <Route path="/cancel-booking" element={<CancelBookingPage />} />
+                <Route path="/events" element={<EventPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/profil" element={<ProfilePage />} />
