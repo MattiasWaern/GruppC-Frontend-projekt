@@ -8,25 +8,26 @@ import { sendBookingConfirmationEmail } from "../email.js";
 
 const router = Router();
 
-
 function generateBookingNumber(): string {
   const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
   const randomPart = Array.from(
     { length: 5 },
-    () => characters[randomInt(characters.length)]
+    () => characters[randomInt(characters.length)],
   ).join("");
 
   return `FV-${randomPart}`;
 }
 
-
 type AuthPayload = JwtPayload & { userId: number };
-function readAuthenticatedUser(req: { headers: { authorization?: string } }):
-  { userId: number | null; invalid: boolean } {
+function readAuthenticatedUser(req: { headers: { authorization?: string } }): {
+  userId: number | null;
+  invalid: boolean;
+} {
   const authorization = req.headers.authorization;
   if (!authorization) return { userId: null, invalid: false };
-  if (!authorization.startsWith("Bearer ")) return { userId: null, invalid: true };
+  if (!authorization.startsWith("Bearer "))
+    return { userId: null, invalid: true };
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT_SECRET saknas");
   try {
@@ -81,11 +82,11 @@ router.get("/", async (req, res) => {
 
       [rows] = await db.query<BookingRow[]>(
         "SELECT * FROM booking WHERE userId = ? ORDER BY bookingId DESC",
-        [userId]
+        [userId],
       );
     } else {
       [rows] = await db.query<BookingRow[]>(
-        "SELECT * FROM booking ORDER BY bookingId DESC"
+        "SELECT * FROM booking ORDER BY bookingId DESC",
       );
     }
 
@@ -201,7 +202,7 @@ router.get("/mine", async (req, res) => {
         v.viewing_date DESC,
         v.viewing_start_time DESC
       `,
-      [userId]
+      [userId],
     );
 
     res.json(
@@ -209,10 +210,8 @@ router.get("/mine", async (req, res) => {
         ...row,
         ticketCount: Number(row.ticketCount),
         totalPrice: Number(row.totalPrice),
-        seatLabels: row.seatLabels
-          ? String(row.seatLabels).split(" | ")
-          : [],
-      }))
+        seatLabels: row.seatLabels ? String(row.seatLabels).split(" | ") : [],
+      })),
     );
   } catch (error) {
     console.error("Kunde inte hämta bokningshistorik:", error);
@@ -222,7 +221,6 @@ router.get("/mine", async (req, res) => {
     });
   }
 });
-
 
 // GET: Hämta en bokning med stolar, biljettyp och pris per stol.
 router.get("/:id/tickets", async (req, res) => {
@@ -242,7 +240,7 @@ router.get("/:id/tickets", async (req, res) => {
        INNER JOIN tickettype tt ON tt.ticketTypeId = bs.ticketTypeId
        WHERE bs.bookingId = ?
        ORDER BY s.\`row\`, s.seatnumber`,
-      [bookingId]
+      [bookingId],
     );
 
     const totalPrice = rows.reduce((sum, r) => sum + Number(r.price), 0);
@@ -265,7 +263,7 @@ router.get("/:id", async (req, res) => {
   try {
     const [rows] = await db.query<BookingRow[]>(
       "SELECT * FROM booking WHERE bookingId = ?",
-      [bookingId]
+      [bookingId],
     );
 
     if (rows.length === 0) {
@@ -292,18 +290,29 @@ router.post("/", async (req, res) => {
   };
   const auth = readAuthenticatedUser(req);
   if (auth.invalid) {
-    res.status(401).json({ error: "Ogiltig eller utgången inloggning. Logga in igen." });
+    res
+      .status(401)
+      .json({ error: "Ogiltig eller utgången inloggning. Logga in igen." });
     return;
   }
   const userId = auth.userId;
   const viewingId = body.viewingId;
-  const guestName = typeof body.guestName === "string" ? body.guestName.trim() : "";
-  const guestEmail = typeof body.guestEmail === "string" ? body.guestEmail.trim().toLowerCase() : "";
-  if (userId === null && (
-    guestName.length < 2 || guestName.length > 100 ||
-    guestEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)
-  )) {
-    res.status(400).json({ error: "Gäster måste ange namn och giltig e-postadress" });
+  const guestName =
+    typeof body.guestName === "string" ? body.guestName.trim() : "";
+  const guestEmail =
+    typeof body.guestEmail === "string"
+      ? body.guestEmail.trim().toLowerCase()
+      : "";
+  if (
+    userId === null &&
+    (guestName.length < 2 ||
+      guestName.length > 100 ||
+      guestEmail.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail))
+  ) {
+    res
+      .status(400)
+      .json({ error: "Gäster måste ange namn och giltig e-postadress" });
     return;
   }
 
@@ -329,13 +338,12 @@ router.post("/", async (req, res) => {
         Number.isInteger(t.seatId) &&
         t.seatId > 0 &&
         Number.isInteger(t.ticketTypeId) &&
-        t.ticketTypeId > 0
+        t.ticketTypeId > 0,
     ) ||
     new Set(tickets.map((t) => t.seatId)).size !== tickets.length
   ) {
     res.status(400).json({
-      error:
-        "viewingId och tickets (unika seatId med ticketTypeId) krävs",
+      error: "viewingId och tickets (unika seatId med ticketTypeId) krävs",
     });
     return;
   }
@@ -351,7 +359,7 @@ router.post("/", async (req, res) => {
     // Låser visningen så att två bokningar för samma visning inte körs samtidigt.
     const [viewings] = await conn.query<RowDataPacket[]>(
       "SELECT theaterId FROM viewing WHERE viewingId = ? FOR UPDATE",
-      [viewingId]
+      [viewingId],
     );
 
     if (viewings.length === 0) {
@@ -364,7 +372,7 @@ router.post("/", async (req, res) => {
     const [ticketTypes] = await conn.query<RowDataPacket[]>(
       `SELECT ticketTypeId, price FROM tickettype
        WHERE ticketTypeId IN (${ticketTypeIds.map(() => "?").join(",")})`,
-      ticketTypeIds
+      ticketTypeIds,
     );
 
     if (ticketTypes.length !== ticketTypeIds.length) {
@@ -374,7 +382,7 @@ router.post("/", async (req, res) => {
     }
 
     const priceById = new Map<number, number>(
-      ticketTypes.map((r) => [Number(r.ticketTypeId), Number(r.price)])
+      ticketTypes.map((r) => [Number(r.ticketTypeId), Number(r.price)]),
     );
 
     const seatPlaceholders = seatIds.map(() => "?").join(",");
@@ -382,7 +390,7 @@ router.post("/", async (req, res) => {
     const [seats] = await conn.query<RowDataPacket[]>(
       `SELECT seatId FROM seats
        WHERE theaterId = ? AND seatId IN (${seatPlaceholders})`,
-      [viewings[0].theaterId, ...seatIds]
+      [viewings[0].theaterId, ...seatIds],
     );
 
     if (seats.length !== seatIds.length) {
@@ -398,7 +406,7 @@ router.post("/", async (req, res) => {
        FROM bokad_stol bs
        INNER JOIN booking b ON b.bookingId = bs.bookingId
        WHERE b.viewingId = ? AND bs.seatId IN (${seatPlaceholders})`,
-      [viewingId, ...seatIds]
+      [viewingId, ...seatIds],
     );
 
     if (existing.length > 0) {
@@ -410,9 +418,8 @@ router.post("/", async (req, res) => {
       return;
     }
 
-    
     const bookingNumber = generateBookingNumber();
-    
+
     const bookingDate = new Date().toISOString();
 
     const [result] = await conn.query<ResultSetHeader>(
@@ -428,7 +435,7 @@ router.post("/", async (req, res) => {
         "confirmed",
         bookingDate,
         seatIds.join(","),
-      ]
+      ],
     );
 
     const bookingId = result.insertId;
@@ -437,14 +444,14 @@ router.post("/", async (req, res) => {
     // viewingId behövs eftersom bokad_stol har UNIQUE (viewingId, seatId).
     await conn.query<ResultSetHeader>(
       "INSERT INTO bokad_stol (bookingId, seatId, ticketTypeId, viewingId) VALUES ?",
-      [tickets.map((t) => [bookingId, t.seatId, t.ticketTypeId, viewingId])]
+      [tickets.map((t) => [bookingId, t.seatId, t.ticketTypeId, viewingId])],
     );
 
     await conn.commit();
 
     const totalPrice = tickets.reduce(
       (sum, t) => sum + (priceById.get(t.ticketTypeId) ?? 0),
-      0
+      0,
     );
 
     let emailSent = false;
@@ -452,7 +459,8 @@ router.post("/", async (req, res) => {
       let email = guestEmail;
       if (userId !== null) {
         const [users] = await db.query<RowDataPacket[]>(
-          "SELECT email FROM users WHERE userId = ?", [userId]
+          "SELECT email FROM users WHERE userId = ?",
+          [userId],
         );
         email = typeof users[0]?.email === "string" ? users[0].email : "";
       }
@@ -535,7 +543,7 @@ router.delete("/", async (req, res) => {
        LEFT JOIN users u ON u.userId = b.userId
        WHERE b.booking_number = ? AND (u.email = ? OR b.guest_email = ?)
        FOR UPDATE`,
-      [booking_number.trim().toUpperCase(), email.trim(), email.trim()]
+      [booking_number.trim().toUpperCase(), email.trim(), email.trim()],
     );
 
     if (bookings.length === 0) {
@@ -552,13 +560,13 @@ router.delete("/", async (req, res) => {
     // Radera bokade stolar först
     await conn.query<ResultSetHeader>(
       "DELETE FROM bokad_stol WHERE bookingId = ?",
-      [bookingId]
+      [bookingId],
     );
 
     // Radera själva bokningen
     const [result] = await conn.query<ResultSetHeader>(
       "DELETE FROM booking WHERE bookingId = ?",
-      [bookingId]
+      [bookingId],
     );
 
     if (result.affectedRows === 0) {
@@ -577,10 +585,7 @@ router.delete("/", async (req, res) => {
     try {
       await conn.rollback();
     } catch (rollbackError) {
-      console.error(
-        "Kunde inte återställa transaktionen:",
-        rollbackError
-      );
+      console.error("Kunde inte återställa transaktionen:", rollbackError);
     }
 
     console.error("Kunde inte avboka:", error);
