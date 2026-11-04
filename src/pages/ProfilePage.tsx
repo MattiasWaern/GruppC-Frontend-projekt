@@ -329,13 +329,27 @@ export default function ProfilePage() {
                           {currency.format(booking.totalPrice)}
                         </p>
                       </div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Link
+                          to={`/booking-confirmation/${booking.bookingId}`}
+                          className="rounded-lg border border-[#b99b4c] px-4 py-2.5 text-sm text-[#e5ca7a] transition hover:bg-[#b99b4c] hover:text-black"
+                        >
+                          Visa bokning
+                        </Link>
 
-                      <Link
-                        to={`/booking-confirmation/${booking.bookingId}`}
-                        className="rounded-lg border border-[#b99b4c] px-4 py-2.5 text-sm text-[#e5ca7a] transition hover:bg-[#b99b4c] hover:text-black"
-                      >
-                        Visa bokning
-                      </Link>
+                        {activeTab === "upcoming" && (
+                          <Link
+                            to="/cancel-booking"
+                            state={{
+                              email: user.email,
+                              bookingNumber: booking.bookingNumber,
+                            }}
+                            className="rounded-lg border border-red-800 px-4 py-2.5 text-sm text-red-300 transition hover:bg-red-900/30"
+                          >
+                            Avboka
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </article>
