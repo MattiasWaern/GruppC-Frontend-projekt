@@ -26,18 +26,24 @@ const currency = new Intl.NumberFormat("sv-SE", {
 });
 
 function formatDate(date: string) {
-  const value = date.slice(0, 10);
-  const [year, month, day] = value.split("-");
-
-  return `${day}/${month}/${year}`;
-}
+  return new Date(date).toLocaleDateString("sv-SE", {
+    timeZone: "Europe/Stockholm",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}  
 
 function formatTime(time: string) {
   return time.slice(0, 5);
 }
 
 function getViewingDate(booking: Booking) {
-  const date = booking.viewingDate.slice(0, 10);
+  const date = new Date(booking.viewingDate)
+    .toLocaleDateString("sv-SE", {
+      timeZone: "Europe/Stockholm",
+    });
+
   const time = booking.viewingTime.slice(0, 8);
 
   return new Date(`${date}T${time}`);
