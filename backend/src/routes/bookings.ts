@@ -96,6 +96,134 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/mine", async (req, res) => {
+  const authorization = req.headers.authorization;
+
+  if (!authorization?.startsWith("Bearer ")) {
+    res.status(401).json({
+      error: "Du måste vara inloggad för att se dina bokningar.",
+    });
+    return;
+  }
+
+  const token = authorization.slice(7);
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    res.status(500).json({
+      error: "Serverns autentisering är inte konfigurerad.",
+    });
+    return;
+  }
+
+  let userId: number;
+
+  try {
+    const decoded = jwt.verify(token, secret);
+
+    if (
+      typeof decoded === "string" ||
+      typeof (decoded as JwtPayload).userId !== "number" ||
+      !Number.isSafeInteger((decoded as JwtPayload).userId) ||
+      (decoded as JwtPayload).userId <= 0
+    ) {
+      res.status(401).json({ error: "Ogiltig inloggning." });
+      return;
+    }
+
+    userId = (decoded as JwtPayload).userId;
+  } catch {
+    res.status(401).json({
+      error: "Din inloggning har gått ut. Logga in igen.",
+    });
+    return;
+  }
+
+  try {
+    const [rows] = await db.query<RowDataPacket[]>(
+      `
+      SELECT
+        b.bookingId,
+        b.booking_number AS bookingNumber,
+        b.booking_confirmation AS status,
+        b.booking_date AS bookingDate,
+
+        v.viewingId,
+        v.viewing_date AS viewingDate,
+        v.viewing_start_time AS viewingTime,
+
+        m.title AS movieTitle,
+        t.name AS theaterName,
+
+        COUNT(bs.seatId) AS ticketCount,
+        COALESCE(SUM(tt.price), 0) AS totalPrice,
+
+        GROUP_CONCAT(
+          CONCAT('Rad ', s.\`row\`, ', plats ', s.seatnumber)
+          ORDER BY s.\`row\`, s.seatnumber
+          SEPARATOR ' | '
+        ) AS seatLabels
+
+      FROM booking b
+
+      INNER JOIN viewing v
+        ON v.viewingId = b.viewingId
+
+      INNER JOIN movies m
+        ON m.movieId = v.movieId
+
+      INNER JOIN theater t
+        ON t.theaterId = v.theaterId
+
+      LEFT JOIN bokad_stol bs
+        ON bs.bookingId = b.bookingId
+
+      LEFT JOIN seats s
+        ON s.seatId = bs.seatId
+
+      LEFT JOIN tickettype tt
+        ON tt.ticketTypeId = bs.ticketTypeId
+
+      WHERE b.userId = ?
+
+      GROUP BY
+        b.bookingId,
+        b.booking_number,
+        b.booking_confirmation,
+        b.booking_date,
+        v.viewingId,
+        v.viewing_date,
+        v.viewing_start_time,
+        m.title,
+        t.name
+
+      ORDER BY
+        v.viewing_date DESC,
+        v.viewing_start_time DESC
+      `,
+      [userId]
+    );
+
+    res.json(
+      rows.map((row) => ({
+        ...row,
+        ticketCount: Number(row.ticketCount),
+        totalPrice: Number(row.totalPrice),
+        seatLabels: row.seatLabels
+          ? String(row.seatLabels).split(" | ")
+          : [],
+      }))
+    );
+  } catch (error) {
+    console.error("Kunde inte hämta bokningshistorik:", error);
+
+    res.status(500).json({
+      error: "Kunde inte hämta dina bokningar.",
+    });
+  }
+});
+
+
 // GET: Hämta en bokning med stolar, biljettyp och pris per stol.
 router.get("/:id/tickets", async (req, res) => {
   const bookingId = Number(req.params.id);
