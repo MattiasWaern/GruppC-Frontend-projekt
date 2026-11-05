@@ -1,9 +1,15 @@
 import { Router } from "express";
+
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
+
 import db from "../db.js";
+
 import type { Booking } from "../types/booking.js";
+
 import { randomInt } from "node:crypto";
+
 import jwt, { type JwtPayload } from "jsonwebtoken";
+
 import { sendBookingConfirmationEmail } from "../email.js";
 
 const router = Router();
@@ -429,7 +435,8 @@ router.post("/", async (req, res) => {
     !Number.isInteger(viewingId) ||
     viewingId <= 0 ||
     tickets.length === 0 ||
-    body.ageConfirmed !== true ||
+    (tickets.some((ticket) => ticket?.ticketTypeId === 1) &&
+      body.ageConfirmed !== true) ||
     !tickets.every(
       (t) =>
         t &&

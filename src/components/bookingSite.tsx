@@ -283,7 +283,7 @@ const BookingPage: React.FC = () => {
     !loadingMovie &&
     totalTickets > 0 &&
     selectedSeatIds.length === totalTickets &&
-    ageConfirmed &&
+    (ticketCounts.child === 0 || ageConfirmed) &&
     movie !== null &&
     [0, 7, 11, 15].includes(movie.ageLimit);
 
@@ -525,7 +525,7 @@ const BookingPage: React.FC = () => {
           </div>
         </div>
 
-        {totalTickets > 0 && (
+        {ticketCounts.child > 0 && (
           <section className="mb-8 rounded-xl border border-[#6c5a31]/50 bg-[#1b1b1b] p-5 font-sans sm:p-6">
             <h2 className="mb-2 font-serif text-xl text-[#f1e3be]">
               Åldersgräns
