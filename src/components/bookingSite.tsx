@@ -25,8 +25,9 @@ type ApiSeat = {
 };
 
 type ViewingMovie = {
-    title: string;
-    posterUrl: string | null;
+  title: string;
+  posterUrl: string | null;
+  ageLimit: number;
 };
 
 const prices: Record<keyof TicketCounts, number> = {
@@ -161,8 +162,9 @@ const BookingPage: React.FC = () => {
                 const data = await movieRes.json();
 
                 setMovie({
-                    title: data.title ?? data.name ?? '',
-                    posterUrl: data.posterUrl ?? data.poster ?? null,
+                title: data.title ?? data.name ?? "",
+                posterUrl: data.posterUrl ?? data.poster ?? null,
+                ageLimit: Number(data.age_limit),
                 });
             } catch (err: unknown) {
                 if (err instanceof Error && err.name !== 'AbortError') {
