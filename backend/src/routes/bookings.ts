@@ -465,7 +465,7 @@ router.post("/", async (req, res) => {
         email = typeof users[0]?.email === "string" ? users[0].email : "";
       }
       if (!email) throw new Error("Ingen e-postadress för bokningsbekräftelse");
-      await sendBookingConfirmationEmail({ to: email, bookingNumber });
+      await sendBookingConfirmationEmail({ to: email, bookingNumber }); //Skickar automatiskt bokningsbekräftelse via e-post.
       emailSent = true;
     } catch (error) {
       console.error("Kunde inte skicka bokningsbekräftelsen:", error);

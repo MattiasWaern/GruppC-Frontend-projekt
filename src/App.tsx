@@ -17,6 +17,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import AboutUs from './pages/AboutUs';
+import ContactPage from './pages/ContactPage';
 
 function HomePage() {
   return (
@@ -54,6 +55,7 @@ export default function App() {
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/profil" element={<ProfilePage />} />
                 <Route path="/om-oss" element={<AboutUs />}/>
+                <Route path="/kontakt" element={<ContactPage />} />
               </Routes>
             </main>
 
