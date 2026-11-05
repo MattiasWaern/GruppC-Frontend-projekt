@@ -1,82 +1,59 @@
 import React, { useEffect, useState } from "react";
-
 import { Link, useNavigate, useParams } from "react-router";
 
 type TicketCounts = {
   adult: number;
-
   child: number;
-
   senior: number;
 };
 
 type Seat = {
   id: number;
-
   rowNumber: number;
-
   seatNumber: number;
-
   isBooked: boolean;
 };
 
 type ApiSeat = {
   seatId?: number;
-
   id?: number;
-
   row?: number;
-
   rowNumber?: number;
-
   seatnumber?: number;
-
   seatNumber?: number;
-
   isBooked: number | boolean;
 };
 
 type ViewingMovie = {
   title: string;
-
   posterUrl: string | null;
-
   ageLimit: number;
 };
 
 const prices: Record<keyof TicketCounts, number> = {
   adult: 140,
-
   child: 80,
-
   senior: 120,
 };
 
 const sek = new Intl.NumberFormat("sv-SE", {
   style: "currency",
-
   currency: "SEK",
-
   maximumFractionDigits: 0,
 });
 
 function toSeat(raw: ApiSeat): Seat {
   return {
     id: Number(raw.seatId ?? raw.id),
-
     rowNumber: Number(raw.row ?? raw.rowNumber),
-
     seatNumber: Number(raw.seatnumber ?? raw.seatNumber),
-
     isBooked: Boolean(raw.isBooked),
   };
 }
 
 // ikonerna för sittplatserna, rygg och sits + lagt till checkmark om platsen är vald
-
 const SeatIcon: React.FC<{ className?: string; isSelected?: boolean }> = ({
   className = "",
-
   isSelected = false,
 }) => (
   <svg
@@ -86,9 +63,7 @@ const SeatIcon: React.FC<{ className?: string; isSelected?: boolean }> = ({
     aria-hidden="true"
   >
     <rect x="10" y="3" width="20" height="11" rx="2" />
-
     <rect x="6" y="13" width="28" height="23" rx="3" />
-
     {isSelected && (
       <path
         d="M13 23 L18 28 L27 19"
@@ -118,35 +93,22 @@ const BookingPage: React.FC = () => {
     viewingId > 0;
 
   const [seats, setSeats] = useState<Seat[]>([]);
-
   const [movie, setMovie] = useState<ViewingMovie | null>(null);
-
   const [ticketCounts, setTicketCounts] = useState<TicketCounts>({
     adult: 0,
-
     child: 0,
-
     senior: 0,
   });
-
   const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
-
   const [ageConfirmed, setAgeConfirmed] = useState(false);
-
   const [loadingSeats, setLoadingSeats] = useState(true);
-
   const [loadingMovie, setLoadingMovie] = useState(true);
-
   const [error, setError] = useState("");
-
   const [guestName, setGuestName] = useState("");
-
   const [guestEmail, setGuestEmail] = useState("");
-
   const [bookingLoading, setBookingLoading] = useState(false);
 
   const token = localStorage.getItem("token");
-
   const isLoggedIn = Boolean(token);
 
   useEffect(() => {
@@ -159,16 +121,13 @@ const BookingPage: React.FC = () => {
     }
 
     const controller = new AbortController();
-
     const { signal } = controller;
 
     async function loadMovie() {
       try {
-        const viewingRes = await fetch(
-          `/api/viewings/${viewingId}`,
-
-          { signal },
-        );
+        const viewingRes = await fetch(`/api/viewings/${viewingId}`, {
+          signal,
+        });
 
         if (!viewingRes.ok) {
           throw new Error("Kunde inte hämta visningen.");
@@ -176,11 +135,9 @@ const BookingPage: React.FC = () => {
 
         const viewing: { movieId: number } = await viewingRes.json();
 
-        const movieRes = await fetch(
-          `/api/movies/${viewing.movieId}`,
-
-          { signal },
-        );
+        const movieRes = await fetch(`/api/movies/${viewing.movieId}`, {
+          signal,
+        });
 
         if (!movieRes.ok) {
           throw new Error("Kunde inte hämta filmens information.");
@@ -190,9 +147,7 @@ const BookingPage: React.FC = () => {
 
         setMovie({
           title: data.title ?? data.name ?? "",
-
           posterUrl: data.posterUrl ?? data.poster ?? null,
-
           ageLimit: Number(data.age_limit),
         });
       } catch (err: unknown) {
@@ -217,16 +172,13 @@ const BookingPage: React.FC = () => {
     }
 
     const controller = new AbortController();
-
     const { signal } = controller;
 
     async function loadSeats() {
       try {
-        const res = await fetch(
-          `/api/viewings/${viewingId}/seats`,
-
-          { signal },
-        );
+        const res = await fetch(`/api/viewings/${viewingId}/seats`, {
+          signal,
+        });
 
         if (!res.ok) {
           throw new Error("Kunde inte hämta sittplatserna.");
@@ -287,11 +239,7 @@ const BookingPage: React.FC = () => {
     movie !== null &&
     [0, 7, 11, 15].includes(movie.ageLimit);
 
-  const handleTicketChange = (
-    type: keyof TicketCounts,
-
-    delta: number,
-  ) => {
+  const handleTicketChange = (type: keyof TicketCounts, delta: number) => {
     const newValue = ticketCounts[type] + delta;
 
     if (newValue < 0) {
@@ -300,16 +248,13 @@ const BookingPage: React.FC = () => {
 
     const next = {
       ...ticketCounts,
-
       [type]: newValue,
     };
 
     const nextTotal = next.adult + next.child + next.senior;
 
     setTicketCounts(next);
-
     setAgeConfirmed(false);
-
     setSelectedSeatIds((current) => current.slice(0, nextTotal));
   };
 
@@ -341,13 +286,11 @@ const BookingPage: React.FC = () => {
     if (!currentToken) {
       if (guestName.trim().length < 2) {
         setError("Ange ditt namn.");
-
         return;
       }
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
         setError("Ange en giltig e-postadress.");
-
         return;
       }
     }
@@ -362,23 +305,17 @@ const BookingPage: React.FC = () => {
 
       const response = await fetch("/api/bookings", {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
-
           ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}),
         },
-
         body: JSON.stringify({
           viewingId,
-
           tickets,
           ageConfirmed,
-
           ...(!currentToken
             ? {
                 guestName: guestName.trim(),
-
                 guestEmail: guestEmail.trim(),
               }
             : {}),
@@ -413,7 +350,6 @@ const BookingPage: React.FC = () => {
       <div className="flex min-h-screen items-center justify-center bg-[#111111] px-4 text-center text-[#e6c96a]">
         <div>
           <h1 className="mb-3 font-serif text-2xl">Ogiltig visning</h1>
-
           <p>Kontrollera webbadressen och försök igen.</p>
         </div>
       </div>
@@ -433,9 +369,7 @@ const BookingPage: React.FC = () => {
               {(
                 [
                   ["adult", "Vuxen"],
-
                   ["child", "Barn"],
-
                   ["senior", "Pensionär"],
                 ] as [keyof TicketCounts, string][]
               ).map(([type, label]) => (
@@ -464,7 +398,6 @@ const BookingPage: React.FC = () => {
                       strokeWidth="1.8"
                     >
                       <circle cx="12" cy="12" r="9" />
-
                       <path d="M7 12h10" />
                     </svg>
                   </button>
@@ -487,7 +420,6 @@ const BookingPage: React.FC = () => {
                       strokeWidth="1.8"
                     >
                       <circle cx="12" cy="12" r="9" />
-
                       <path d="M12 7v10M7 12h10" />
                     </svg>
                   </button>
@@ -561,22 +493,19 @@ const BookingPage: React.FC = () => {
           </h2>
 
           <div className="bg-[#1b1b1b] px-3 pb-5 pt-3 sm:px-6 sm:pb-6">
-            <div className="mb-6 flex w-fit mx-auto items-center gap-3">
+            <div className="mx-auto mb-6 flex w-fit items-center gap-3">
               <div className="flex w-24 flex-col items-center gap-1 text-white">
                 <span className="font-serif text-sm sm:text-lg">Upptagen</span>
-
                 <SeatIcon className="text-[#D46A70]" />
               </div>
 
               <div className="flex w-24 flex-col items-center gap-1 text-white">
                 <span className="font-serif text-sm sm:text-lg">Ledig</span>
-
                 <SeatIcon className="text-[#A8C982]" />
               </div>
 
               <div className="flex w-24 flex-col items-center gap-1 text-white">
                 <span className="font-serif text-sm sm:text-lg">Vald</span>
-
                 <SeatIcon className="text-[#E5C86A]" isSelected={true} />
               </div>
             </div>
@@ -597,9 +526,7 @@ const BookingPage: React.FC = () => {
               <div className="space-y-2 sm:space-y-3">
                 {rows.map((rowNumber) => {
                   const rowSeats = seats
-
                     .filter((seat) => seat.rowNumber === rowNumber)
-
                     .sort((a, b) => a.seatNumber - b.seatNumber);
 
                   return (
@@ -649,7 +576,6 @@ const BookingPage: React.FC = () => {
               >
                 {selectedSeatIds.length > 0
                   ? selectedSeatIds
-
                       .map((id) => {
                         const seat = seats.find((item) => item.id === id);
 
@@ -657,9 +583,7 @@ const BookingPage: React.FC = () => {
                           ? `Rad ${seat.rowNumber}, Plats ${seat.seatNumber}`
                           : "";
                       })
-
                       .filter(Boolean)
-
                       .join(" · ")
                   : "Välj dina platser"}
               </div>
