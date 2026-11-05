@@ -11,6 +11,7 @@ import userRoutes from './routes/users.js'
 import ticketRoutes from './routes/tickets.js'
 import aboutUsRouter from './routes/aboutUs.js'
 import seatsRouter from './routes/seats.js'
+import authRouter from "./routes/auth.js";
 
 // Kan ta bort detta senare
 try {
@@ -27,6 +28,7 @@ const app = express()
 const PORT = 3000;
 
 app.use(express.json())
+app.use("/api/auth", authRouter);
 
 
 app.get('/api/health', (_req, res) => {
