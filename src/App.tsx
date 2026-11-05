@@ -1,15 +1,23 @@
-import { BrowserRouter, Routes, Route } from 'react-router'
-import Header from './components/Header'
-import HeroSection from './components/HeroSection'
-import MovieSection from './components/MovieSection'
-import BookingBanner from './components/BookingBanner'
-import MobileNavigation from './components/MobileNavigation'
-import MovieDetails from './pages/detailPage'
-import Footer from './components/Footer'
-import BookingConfirmation from './pages/BookingConfirmation'
-import BookingPage from './components/bookingSite'
-import CancelBookingPage from './pages/CancelBookingPage'
-import { MoviesPage } from './pages/MoviesPage'
+import { BrowserRouter, Routes, Route } from "react-router";
+import { AuthProvider } from "./context/AuthContext";
+
+import Header from "./components/Header";
+import MobileNavigation from "./components/MobileNavigation";
+import HeroSection from "./components/HeroSection";
+import MovieSection from "./components/MovieSection";
+import BookingBanner from "./components/BookingBanner";
+import Footer from "./components/Footer";
+
+import EventPage from './pages/eventPage'
+import MovieDetails from "./pages/detailPage";
+import BookingConfirmation from "./pages/BookingConfirmation";
+import BookingPage from "./components/bookingSite";
+import CancelBookingPage from "./pages/CancelBookingPage";
+import { MoviesPage } from "./pages/MoviesPage";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import ProfilePage from "./pages/ProfilePage";
+import AboutUs from './pages/AboutUs';
 
 function HomePage() {
   return (
@@ -24,27 +32,37 @@ function HomePage() {
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-[#1d1d1d] text-[#e5ca7a]">
+      <AuthProvider>
+        <div className="min-h-screen bg-[#1d1d1d] text-[#e5ca7a]">
+          {/* Header ligger fixed överst */}
+          <Header />
 
-        <Header />
+          {/* Navigation ligger fixed på vänster sida */}
+          <MobileNavigation />
 
-        <main className="mx-auto min-h-screen max-w-7xl px-4 pb-24 pt-20 md:px-8 md:pb-12">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/movies/:id" element={<MovieDetails />} />
-            <Route path="/movies" element={<MoviesPage />}/> 
-            <Route path="/booking-confirmation" element={<BookingConfirmation />} />
-            <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
-            <Route path="/bookings/:viewingId" element={<BookingPage userId={1} />} />
-            <Route path="/cancel-booking" element={<CancelBookingPage />} />
-          </Routes>
-        </main>
+          {/* Gemensam yta för allt sidinnehåll */}
+          <div className="min-w-0 md:ml-56">
+            <main className="mx-auto min-h-screen w-full max-w-7xl px-4 pb-24 pt-[76px] sm:px-6 md:px-8 md:pb-12">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/movies" element={<MoviesPage />} />
+                <Route path="/movies/:id" element={<MovieDetails />} />
+                <Route path="/bookings/:viewingId" element={<BookingPage />} />
+                <Route path="/booking-confirmation" element={<BookingConfirmation />}/>
+                <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
+                <Route path="/cancel-booking" element={<CancelBookingPage />} />
+                <Route path="/events" element={<EventPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/profil" element={<ProfilePage />} />
+                <Route path="/om-oss" element={<AboutUs />}/>
+              </Routes>
+            </main>
 
-        <Footer />
-
-        <MobileNavigation />
-
-      </div>
+            <Footer />
+          </div>
+        </div>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

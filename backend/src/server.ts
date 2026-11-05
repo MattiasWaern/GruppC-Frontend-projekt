@@ -44,7 +44,7 @@ app.use("/api/admin/roles", rolesRouter);
 app.use('/api/users', userRoutes)
 app.use('/api/theaters', theatersRouter)
 app.use('/api/tickets', ticketRoutes)
-
+app.use("/api/auth", authRoutes);
 app.use('/api/about-us', aboutUsRouter)
 app.use('/api/seats', seatsRouter)
 app.listen(PORT, () => {

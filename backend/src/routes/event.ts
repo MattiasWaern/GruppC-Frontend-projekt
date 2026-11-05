@@ -126,7 +126,7 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
     try {
         const [rows] = await db.query<EventRow[]>(
             `SELECT eventId, title, date, description, poster, categoryId
-             FROM events`
+             FROM event`
         );
 
         res.json(rows);
@@ -153,7 +153,7 @@ router.get(
         try {
             const [rows] = await db.query<EventRow[]>(
                 `SELECT eventId, title, date, description, poster, categoryId
-                 FROM events
+                 FROM event
                  WHERE eventId = ?`,
                 [eventId]
             );
@@ -191,7 +191,7 @@ router.post(
 
         try {
             const [result] = await db.query<ResultSetHeader>(
-                `INSERT INTO events
+                `INSERT INTO event
                  (title, date, description, poster, categoryId)
                  VALUES (?, ?, ?, ?, ?)`,
                 [
@@ -239,7 +239,7 @@ router.put(
 
         try {
             const [result] = await db.query<ResultSetHeader>(
-                `UPDATE events
+                `UPDATE event
                  SET title = ?, date = ?, description = ?, poster = ?, categoryId = ?
                  WHERE eventId = ?`,
                 [
@@ -254,7 +254,7 @@ router.put(
 
             if (result.affectedRows === 0) {
                 const [rows] = await db.query<EventRow[]>(
-                    'SELECT eventId FROM events WHERE eventId = ?',
+                    'SELECT eventId FROM event WHERE eventId = ?',
                     [eventId]
                 );
 
@@ -290,7 +290,7 @@ router.delete(
 
         try {
             const [result] = await db.query<ResultSetHeader>(
-                'DELETE FROM events WHERE eventId = ?',
+                'DELETE FROM event WHERE eventId = ?',
                 [eventId]
             );
 

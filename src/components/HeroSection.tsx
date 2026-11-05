@@ -1,10 +1,9 @@
-
 export default function HeroSection() {
   return (
-    <section className="hidden md:block md:ml-16 md:mt-5 md:mr-4 md:px-4">
+    <section className="hidden md:block mt-5">
       <div className="relative h-52 overflow-hidden rounded-sm sm:h-72 lg:h-96">
         <img
-          src="/public/images/EventHero.png"
+          src="/images/EventHero.png"
           alt="En exklusiv biograf"
           className="absolute inset-0 h-full w-full object-cover"
         />

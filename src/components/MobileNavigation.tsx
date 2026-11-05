@@ -16,7 +16,7 @@ const navigationItems = [
   { label: "Hem", href: "/", Icon: House },
   { label: "Boka", href: "#movies", Icon: CalendarDays },
   { label: "Om oss", href: "/om-oss", Icon: Info },
-  { label: "Konto", href: "/konto", Icon: UserRound },
+  { label: "Konto", href: "/profil", Icon: UserRound },
 ];
 
 export default function MobileNavigation() {
@@ -40,7 +40,7 @@ export default function MobileNavigation() {
     if (!query) return;
 
     setSearchOpen(false);
-    navigate(`/?search=${encodeURIComponent(query)}`);
+    navigate(`movies/?search=${encodeURIComponent(query)}`);
   }
 
 function handleBookingClick() {
@@ -136,7 +136,7 @@ function handleBookingClick() {
           bg-[#1d1d1d] p-2
 
           md:inset-x-auto md:left-0
-          md:top-20 md:bottom-0
+          md:top-[76px] md:bottom-0
           md:w-56
           md:flex-col md:items-stretch md:justify-start
           md:gap-3 md:border-r md:border-t-0
@@ -200,15 +200,15 @@ function handleBookingClick() {
                md:flex-row md:justify-start
                md:gap-3 md:px-2 lg:px-3
               "
->
-  <Icon
-    aria-hidden="true"
-    size={24}
-    strokeWidth={1.7}
-    className="shrink-0"
-  />
-  <span className="text-xs md:text-sm">{label}</span>
-</Link>
+            >
+              <Icon
+                aria-hidden="true"
+                size={24}
+                strokeWidth={1.7}
+                className="shrink-0"
+              />
+              <span className="text-xs md:text-sm">{label}</span>
+            </Link>
           ))}
       </nav>
     </>
