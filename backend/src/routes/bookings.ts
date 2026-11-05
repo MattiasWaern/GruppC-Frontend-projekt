@@ -46,6 +46,7 @@ interface BookingRow extends Booking, RowDataPacket {}
 interface TicketInput {
   seatId: number;
   ticketTypeId: number;
+  age: number;
 }
 
 function parseSeats(seats: string | null): number[] {
