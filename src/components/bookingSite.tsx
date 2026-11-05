@@ -91,6 +91,29 @@ const SeatIcon: React.FC<{ className?: string; isSelected?: boolean }> = ({
     </svg>
 );
 
+function isAgeAllowed(
+  age: number,
+  ageLimit: number,
+  hasAdultCompanion: boolean
+): boolean {
+  if (ageLimit === 0) return true;
+
+  if (ageLimit === 7) {
+    return age >= 7 || hasAdultCompanion;
+  }
+
+  if (ageLimit === 11) {
+    return age >= 11 || (age >= 7 && hasAdultCompanion);
+  }
+
+  if (ageLimit === 15) {
+    return age >= 15 || (age >= 11 && hasAdultCompanion);
+  }
+
+  return false;
+}
+
+
 const BookingPage: React.FC = () => {
     const navigate = useNavigate();
     const { viewingId: viewingIdParam } = useParams<{
@@ -112,6 +135,7 @@ const BookingPage: React.FC = () => {
         child: 0,
         senior: 0,
     });
+    const [ticketAges, setTicketAges] = useState<(number | null)[]>([]);
     const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
     const [loadingSeats, setLoadingSeats] = useState(true);
     const [loadingMovie, setLoadingMovie] = useState(true);
