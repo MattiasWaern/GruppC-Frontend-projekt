@@ -40,20 +40,9 @@ type ViewingMovie = {
   title: string;
 
   posterUrl: string | null;
+
   ageLimit: number;
 };
-
-function isAgeAllowed(
-  age: number,
-  ageLimit: number,
-  hasAdult: boolean,
-): boolean {
-  if (ageLimit === 0) return true;
-  if (ageLimit === 7) return age >= 7 || hasAdult;
-  if (ageLimit === 11) return age >= 11 || (age >= 7 && hasAdult);
-  if (ageLimit === 15) return age >= 15 || (age >= 11 && hasAdult);
-  return false;
-}
 
 const prices: Record<keyof TicketCounts, number> = {
   adult: 140,
@@ -141,7 +130,8 @@ const BookingPage: React.FC = () => {
   });
 
   const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
-  const [ticketAges, setTicketAges] = useState<(number | null)[]>([]);
+
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
 
   const [loadingSeats, setLoadingSeats] = useState(true);
 
@@ -202,6 +192,7 @@ const BookingPage: React.FC = () => {
           title: data.title ?? data.name ?? "",
 
           posterUrl: data.posterUrl ?? data.poster ?? null,
+
           ageLimit: Number(data.age_limit),
         });
       } catch (err: unknown) {
@@ -280,20 +271,11 @@ const BookingPage: React.FC = () => {
     ticketCounts.child * prices.child +
     ticketCounts.senior * prices.senior;
 
-  const allAgesEntered =
-    ticketAges.length === totalTickets &&
-    ticketAges.every(
-      (age) => age !== null && Number.isInteger(age) && age >= 0 && age <= 120,
-    );
-  const hasAdultCompanion = ticketAges.some((age) => age !== null && age >= 18);
-  const agesAllowed =
-    movie !== null &&
-    [0, 7, 11, 15].includes(movie.ageLimit) &&
-    allAgesEntered &&
-    ticketAges.every(
-      (age) =>
-        age !== null && isAgeAllowed(age, movie.ageLimit, hasAdultCompanion),
-    );
+  const ticketTypes = [
+    ...Array(ticketCounts.adult).fill(3),
+    ...Array(ticketCounts.child).fill(1),
+    ...Array(ticketCounts.senior).fill(2),
+  ] as number[];
 
   const canContinue =
     validViewingId &&
@@ -301,7 +283,9 @@ const BookingPage: React.FC = () => {
     !loadingMovie &&
     totalTickets > 0 &&
     selectedSeatIds.length === totalTickets &&
-    agesAllowed;
+    ageConfirmed &&
+    movie !== null &&
+    [0, 7, 11, 15].includes(movie.ageLimit);
 
   const handleTicketChange = (
     type: keyof TicketCounts,
@@ -323,8 +307,8 @@ const BookingPage: React.FC = () => {
     const nextTotal = next.adult + next.child + next.senior;
 
     setTicketCounts(next);
-    // Nollställ åldrar när biljettfördelningen ändras så ingen ålder kopplas till fel biljettyp.
-    setTicketAges(Array(nextTotal).fill(null));
+
+    setAgeConfirmed(false);
 
     setSelectedSeatIds((current) => current.slice(0, nextTotal));
   };
@@ -368,21 +352,9 @@ const BookingPage: React.FC = () => {
       }
     }
 
-    const ticketTypeIds = { adult: 3, child: 1, senior: 2 };
-
-    const ticketTypes = [
-      ...Array(ticketCounts.adult).fill(ticketTypeIds.adult),
-
-      ...Array(ticketCounts.child).fill(ticketTypeIds.child),
-
-      ...Array(ticketCounts.senior).fill(ticketTypeIds.senior),
-    ];
-
     const tickets = selectedSeatIds.map((seatId, index) => ({
       seatId,
-
-      ticketTypeId: ticketTypes[index] as number,
-      age: ticketAges[index] as number,
+      ticketTypeId: ticketTypes[index],
     }));
 
     try {
@@ -401,6 +373,7 @@ const BookingPage: React.FC = () => {
           viewingId,
 
           tickets,
+          ageConfirmed,
 
           ...(!currentToken
             ? {
@@ -555,90 +528,30 @@ const BookingPage: React.FC = () => {
         {totalTickets > 0 && (
           <section className="mb-8 rounded-xl border border-[#6c5a31]/50 bg-[#1b1b1b] p-5 font-sans sm:p-6">
             <h2 className="mb-2 font-serif text-xl text-[#f1e3be]">
-              Besökarnas ålder
+              Åldersgräns
             </h2>
-            <p className="mb-5 text-sm text-[#aaa59b]">
-              Ange varje besökares ålder. Barnbiljett är en priskategori;
-              åldersgränsen gäller personen.
-            </p>
-            <p className="mb-5 text-sm text-[#e5ca7a]">
-              Filmens åldersgräns:{" "}
+            <p className="mb-4 text-sm text-[#e5ca7a]">
               {movie
-                ? movie.ageLimit === 0
-                  ? "Barntillåten"
-                  : `${movie.ageLimit} år`
-                : "Laddar..."}
+                ? `Filmens åldersgräns: ${movie.ageLimit === 0 ? "Barntillåten" : `${movie.ageLimit} år`}`
+                : "Laddar filmens åldersgräns..."}
             </p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {Array.from({ length: totalTickets }, (_, index) => {
-                const ticketLabels = [
-                  ...Array(ticketCounts.adult).fill("Vuxen"),
-                  ...Array(ticketCounts.child).fill("Barn"),
-                  ...Array(ticketCounts.senior).fill("Pensionär"),
-                ];
-                const age = ticketAges[index] ?? null;
-                const allowed =
-                  movie !== null &&
-                  age !== null &&
-                  isAgeAllowed(age, movie.ageLimit, hasAdultCompanion);
-                return (
-                  <div key={index}>
-                    <label
-                      htmlFor={`ticket-age-${index}`}
-                      className="mb-2 block text-sm text-[#f1e3be]"
-                    >
-                      {ticketLabels[index]} – besökare {index + 1}
-                    </label>
-                    <select
-                      id={`ticket-age-${index}`}
-                      value={age ?? ""}
-                      onChange={(event) => {
-                        const nextAge =
-                          event.target.value === ""
-                            ? null
-                            : Number(event.target.value);
-                        setTicketAges((current) =>
-                          current.map((value, i) =>
-                            i === index ? nextAge : value,
-                          ),
-                        );
-                      }}
-                      className="w-full rounded-lg border border-[#6c5a31]/50 bg-[#292929] px-4 py-3 text-white outline-none focus:border-[#d7b83e]"
-                    >
-                      <option value="">Välj ålder</option>
-                      {Array.from({ length: 121 }, (_, i) => (
-                        <option key={i} value={i}>
-                          {i} år
-                        </option>
-                      ))}
-                    </select>
-                    {age !== null && movie && (
-                      <p
-                        className={`mt-2 text-xs ${allowed ? "text-green-400" : "text-red-400"}`}
-                      >
-                        {allowed
-                          ? "Tillåten ålder"
-                          : "Åldern uppfyller inte filmens regler"}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            {!agesAllowed && allAgesEntered && movie && (
-              <p
-                role="alert"
-                className="mt-5 rounded-lg border border-red-800 bg-red-950/30 p-3 text-sm text-red-300"
-              >
-                En eller flera besökare uppfyller inte filmens åldersgräns, även
-                med ledsagarregeln.
-              </p>
-            )}
-            <p className="mt-5 text-xs leading-relaxed text-[#aaa59b]">
-              En vuxen som fyllt 18 år kan ledsaga yngre besökare enligt svenska
-              åldersregler. Alla besökare behöver en egen biljett. Ålder kan
-              behöva styrkas vid insläpp.
+            <p className="mb-4 text-sm leading-relaxed text-[#aaa59b]">
+              Vid 7-årsgräns får yngre barn följa med en vuxen (18+). Vid
+              11-årsgräns får barn från 7 år följa med en vuxen. Vid 15-årsgräns
+              får ungdomar från 11 år följa med en vuxen. Ålder kan kontrolleras
+              vid insläpp.
             </p>
+            <label className="flex cursor-pointer items-start gap-3 text-sm text-[#f1e3be]">
+              <input
+                type="checkbox"
+                checked={ageConfirmed}
+                onChange={(event) => setAgeConfirmed(event.target.checked)}
+                className="mt-1 h-4 w-4 shrink-0 accent-[#dfbd35]"
+              />
+              <span>
+                Jag bekräftar att alla besökare uppfyller filmens åldersregler.
+              </span>
+            </label>
           </section>
         )}
 
