@@ -110,7 +110,7 @@ return (
       {/* Sidhuvud */}
       <header className="mb-10 border-b border-[#6c5a31]/50 pb-8">
 
-      
+
       {/* Åldersfilter */}
       <div className="mb-8 rounded-xl border border-[#6c5a31]/50 bg-[#1b1b1b] p-5 font-sans sm:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -200,8 +200,8 @@ return (
           </h2>
 
           <p className="mb-6 max-w-md font-sans text-sm leading-relaxed text-[#aaa59b]">
-            Vi kunde inte hitta någon film som matchade din sökning.
-            Prova ett annat sökord eller utforska alla våra filmer.
+            Inga filmer matchar din sökning eller valda åldersgräns.
+            Prova att ändra filtreringen.
           </p>
 
           <Link
