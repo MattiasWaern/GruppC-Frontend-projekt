@@ -53,7 +53,7 @@ export default function EventPage() {
     }
 
     return (
-        <main className="min-h-screen bg-[#111111] px-4 py-8 text-white sm:px-8">
+        <main className="min-h-screen px-4 py-8 text-white sm:px-8">
 
             <div className="mx-auto max-w-5xl">
 
@@ -119,40 +119,37 @@ export default function EventPage() {
                                 {/* Eventinformation */}
                                 <div className="flex flex-col justify-center py-2">
 
-                                    {/* Kategori och datum */}
-                                    <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                                    {/* Kategori */}
+                                    <span className="mb-2 font-serif text-sm text-[#d7bd72]">
+                                        {event.categoryName}
+                                    </span>
 
-                                        <span className="font-serif text-sm text-[#d7bd72]">
-                                            {event.categoryName}
-                                        </span>
+                                    {/* Datum */}
+                                    <div className="mb-3 flex items-center gap-2 text-[#d7bd72]">
 
-                                        <div className="flex items-center gap-2 text-[#d7bd72]">
+                                        {/* Kalenderikon */}
+                                        <svg
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.5"
+                                            className="h-8 w-8"
+                                        >
+                                            <rect
+                                                x="3"
+                                                y="5"
+                                                width="18"
+                                                height="16"
+                                                rx="2"
+                                            />
 
-                                            {/* Kalenderikon */}
-                                            <svg
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="1.5"
-                                                className="h-5 w-5"
-                                            >
-                                                <rect
-                                                    x="3"
-                                                    y="5"
-                                                    width="18"
-                                                    height="16"
-                                                    rx="2"
-                                                />
+                                            <path d="M16 3v4M8 3v4M3 10h18" />
 
-                                                <path d="M16 3v4M8 3v4M3 10h18" />
+                                        </svg>
 
-                                            </svg>
-
-                                            <div className="font-serif text-[10px] leading-tight text-[#e4e0d7]">
-                                                <p>Datum</p>
-                                                <p>{formatDate(event.date)}</p>
-                                            </div>
-
+                                        <div className="font-serif text-[12px] leading-tight text-[#e4e0d7]">
+                                            <p>Datum</p>
+                                            <p>{formatDate(event.date)}</p>
                                         </div>
 
                                     </div>
