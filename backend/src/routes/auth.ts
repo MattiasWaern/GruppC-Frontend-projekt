@@ -10,7 +10,6 @@ const router = Router();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-
 if(!JWT_SECRET){
   throw new Error("JWT_SECRET saknas i .env")
 }
@@ -125,7 +124,7 @@ router.post("/login", async (req, res) => {
         role: user.role,
       },
       secret,
-      { expiresIn: "2h" }
+      { expiresIn: "7d" }
     );
 
     res.json({

@@ -10,16 +10,15 @@ const router = Router();
 
 function generateBookingNumber(): string {
   const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
   const randomPart = Array.from(
     { length: 5 },
     () => characters[randomInt(characters.length)],
   ).join("");
-
   return `FV-${randomPart}`;
 }
 
 type AuthPayload = JwtPayload & { userId: number };
+
 function readAuthenticatedUser(req: { headers: { authorization?: string } }): {
   userId: number | null;
   invalid: boolean;
@@ -35,6 +34,7 @@ function readAuthenticatedUser(req: { headers: { authorization?: string } }): {
     if (!Number.isSafeInteger(payload.userId) || payload.userId <= 0) {
       return { userId: null, invalid: true };
     }
+
     return { userId: payload.userId, invalid: false };
   } catch {
     return { userId: null, invalid: true };
@@ -50,7 +50,6 @@ interface TicketInput {
 
 function parseSeats(seats: string | null): number[] {
   if (!seats) return [];
-
   return seats
     .split(",")
     .map((seat) => Number(seat))
@@ -66,20 +65,17 @@ function toResponse(row: BookingRow) {
 }
 
 // GET: Hämta alla bokningar, eller filtrera på userId.
+
 router.get("/", async (req, res) => {
   const userIdParam = req.query.userId;
-
   try {
     let rows: BookingRow[];
-
     if (userIdParam !== undefined) {
       const userId = Number(userIdParam);
-
       if (!Number.isInteger(userId) || userId <= 0) {
         res.status(400).json({ error: "Ogiltigt användar-ID" });
         return;
       }
-
       [rows] = await db.query<BookingRow[]>(
         "SELECT * FROM booking WHERE userId = ? ORDER BY bookingId DESC",
         [userId],
@@ -89,7 +85,6 @@ router.get("/", async (req, res) => {
         "SELECT * FROM booking ORDER BY bookingId DESC",
       );
     }
-
     res.json(rows.map(toResponse));
   } catch (error) {
     console.error("Kunde inte hämta bokningar:", error);
@@ -99,7 +94,6 @@ router.get("/", async (req, res) => {
 
 router.get("/mine", async (req, res) => {
   const authorization = req.headers.authorization;
-
   if (!authorization?.startsWith("Bearer ")) {
     res.status(401).json({
       error: "Du måste vara inloggad för att se dina bokningar.",
@@ -109,7 +103,6 @@ router.get("/mine", async (req, res) => {
 
   const token = authorization.slice(7);
   const secret = process.env.JWT_SECRET;
-
   if (!secret) {
     res.status(500).json({
       error: "Serverns autentisering är inte konfigurerad.",
@@ -118,10 +111,8 @@ router.get("/mine", async (req, res) => {
   }
 
   let userId: number;
-
   try {
     const decoded = jwt.verify(token, secret);
-
     if (
       typeof decoded === "string" ||
       typeof (decoded as JwtPayload).userId !== "number" ||
@@ -131,7 +122,6 @@ router.get("/mine", async (req, res) => {
       res.status(401).json({ error: "Ogiltig inloggning." });
       return;
     }
-
     userId = (decoded as JwtPayload).userId;
   } catch {
     res.status(401).json({
@@ -148,45 +138,32 @@ router.get("/mine", async (req, res) => {
         b.booking_number AS bookingNumber,
         b.booking_confirmation AS status,
         b.booking_date AS bookingDate,
-
         v.viewingId,
         v.viewing_date AS viewingDate,
         v.viewing_start_time AS viewingTime,
-
         m.title AS movieTitle,
         t.name AS theaterName,
-
         COUNT(bs.seatId) AS ticketCount,
         COALESCE(SUM(tt.price), 0) AS totalPrice,
-
         GROUP_CONCAT(
           CONCAT('Rad ', s.\`row\`, ', plats ', s.seatnumber)
           ORDER BY s.\`row\`, s.seatnumber
           SEPARATOR ' | '
         ) AS seatLabels
-
       FROM booking b
-
       INNER JOIN viewing v
         ON v.viewingId = b.viewingId
-
       INNER JOIN movies m
         ON m.movieId = v.movieId
-
       INNER JOIN theater t
         ON t.theaterId = v.theaterId
-
       LEFT JOIN bokad_stol bs
         ON bs.bookingId = b.bookingId
-
       LEFT JOIN seats s
         ON s.seatId = bs.seatId
-
       LEFT JOIN tickettype tt
         ON tt.ticketTypeId = bs.ticketTypeId
-
       WHERE b.userId = ?
-
       GROUP BY
         b.bookingId,
         b.booking_number,
@@ -197,14 +174,12 @@ router.get("/mine", async (req, res) => {
         v.viewing_start_time,
         m.title,
         t.name
-
       ORDER BY
         v.viewing_date DESC,
         v.viewing_start_time DESC
       `,
       [userId],
     );
-
     res.json(
       rows.map((row) => ({
         ...row,
@@ -215,7 +190,6 @@ router.get("/mine", async (req, res) => {
     );
   } catch (error) {
     console.error("Kunde inte hämta bokningshistorik:", error);
-
     res.status(500).json({
       error: "Kunde inte hämta dina bokningar.",
     });
@@ -223,9 +197,9 @@ router.get("/mine", async (req, res) => {
 });
 
 // GET: Hämta en bokning med stolar, biljettyp och pris per stol.
+
 router.get("/:id/tickets", async (req, res) => {
   const bookingId = Number(req.params.id);
-
   if (!Number.isInteger(bookingId) || bookingId <= 0) {
     res.status(400).json({ error: "Ogiltigt boknings-ID" });
     return;
@@ -242,7 +216,6 @@ router.get("/:id/tickets", async (req, res) => {
        ORDER BY s.\`row\`, s.seatnumber`,
       [bookingId],
     );
-
     const totalPrice = rows.reduce((sum, r) => sum + Number(r.price), 0);
     res.json({ bookingId, tickets: rows, totalPrice });
   } catch (error) {
@@ -252,9 +225,9 @@ router.get("/:id/tickets", async (req, res) => {
 });
 
 // GET: Hämta en specifik bokning.
+
 router.get("/:id", async (req, res) => {
   const bookingId = Number(req.params.id);
-
   if (!Number.isInteger(bookingId) || bookingId <= 0) {
     res.status(400).json({ error: "Ogiltigt boknings-ID" });
     return;
@@ -265,12 +238,10 @@ router.get("/:id", async (req, res) => {
       "SELECT * FROM booking WHERE bookingId = ?",
       [bookingId],
     );
-
     if (rows.length === 0) {
       res.status(404).json({ error: "Bokningen hittades inte" });
       return;
     }
-
     res.json(toResponse(rows[0]));
   } catch (error) {
     console.error("Kunde inte hämta bokningen:", error);
@@ -279,6 +250,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST: Boka som inloggad användare eller gäst.
+
 router.post("/", async (req, res) => {
   const body = (req.body ?? {}) as {
     viewingId?: number;
@@ -287,7 +259,9 @@ router.post("/", async (req, res) => {
     ticketTypeId?: number;
     guestName?: string;
     guestEmail?: string;
+    ageConfirmed?: boolean;
   };
+
   const auth = readAuthenticatedUser(req);
   if (auth.invalid) {
     res
@@ -295,6 +269,7 @@ router.post("/", async (req, res) => {
       .json({ error: "Ogiltig eller utgången inloggning. Logga in igen." });
     return;
   }
+
   const userId = auth.userId;
   const viewingId = body.viewingId;
   const guestName =
@@ -308,7 +283,7 @@ router.post("/", async (req, res) => {
     (guestName.length < 2 ||
       guestName.length > 100 ||
       guestEmail.length > 254 ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail))
+      !/^[^\s@]+@[^\s@]+\.*[^\s@]+$/.test(guestEmail))
   ) {
     res
       .status(400)
@@ -317,7 +292,6 @@ router.post("/", async (req, res) => {
   }
 
   let tickets: TicketInput[] = [];
-
   if (Array.isArray(body.tickets)) {
     tickets = body.tickets;
   } else if (Array.isArray(body.seatIds)) {
@@ -332,6 +306,8 @@ router.post("/", async (req, res) => {
     !Number.isInteger(viewingId) ||
     viewingId <= 0 ||
     tickets.length === 0 ||
+    (tickets.some((ticket) => ticket?.ticketTypeId === 1) &&
+      body.ageConfirmed !== true) ||
     !tickets.every(
       (t) =>
         t &&
@@ -343,28 +319,33 @@ router.post("/", async (req, res) => {
     new Set(tickets.map((t) => t.seatId)).size !== tickets.length
   ) {
     res.status(400).json({
-      error: "viewingId och tickets (unika seatId med ticketTypeId) krävs",
+      error:
+        "Ange giltig visning, biljetter och bekräfta filmens åldersregler.",
     });
     return;
   }
 
   const seatIds = tickets.map((t) => t.seatId);
   const ticketTypeIds = [...new Set(tickets.map((t) => t.ticketTypeId))];
-
   const conn = await db.getConnection();
-
   try {
     await conn.beginTransaction();
-
     // Låser visningen så att två bokningar för samma visning inte körs samtidigt.
     const [viewings] = await conn.query<RowDataPacket[]>(
-      "SELECT theaterId FROM viewing WHERE viewingId = ? FOR UPDATE",
+      "SELECT v.theaterId, m.age_limit AS ageLimit FROM viewing v INNER JOIN movies m ON m.movieId = v.movieId WHERE v.viewingId = ? FOR UPDATE",
       [viewingId],
     );
-
     if (viewings.length === 0) {
       await conn.rollback();
       res.status(404).json({ error: "Visningen hittades inte" });
+      return;
+    }
+
+    const ageLimit =
+      viewings[0].ageLimit == null ? Number.NaN : Number(viewings[0].ageLimit);
+    if (![0, 7, 11, 15].includes(ageLimit)) {
+      await conn.rollback();
+      res.status(400).json({ error: "Filmens åldersgräns är ogiltig." });
       return;
     }
 
@@ -374,7 +355,6 @@ router.post("/", async (req, res) => {
        WHERE ticketTypeId IN (${ticketTypeIds.map(() => "?").join(",")})`,
       ticketTypeIds,
     );
-
     if (ticketTypes.length !== ticketTypeIds.length) {
       await conn.rollback();
       res.status(400).json({ error: "En eller flera biljettyper finns inte" });
@@ -384,15 +364,12 @@ router.post("/", async (req, res) => {
     const priceById = new Map<number, number>(
       ticketTypes.map((r) => [Number(r.ticketTypeId), Number(r.price)]),
     );
-
     const seatPlaceholders = seatIds.map(() => "?").join(",");
-
     const [seats] = await conn.query<RowDataPacket[]>(
       `SELECT seatId FROM seats
        WHERE theaterId = ? AND seatId IN (${seatPlaceholders})`,
       [viewings[0].theaterId, ...seatIds],
     );
-
     if (seats.length !== seatIds.length) {
       await conn.rollback();
       res.status(400).json({
@@ -408,7 +385,6 @@ router.post("/", async (req, res) => {
        WHERE b.viewingId = ? AND bs.seatId IN (${seatPlaceholders})`,
       [viewingId, ...seatIds],
     );
-
     if (existing.length > 0) {
       await conn.rollback();
       res.status(409).json({
@@ -419,9 +395,7 @@ router.post("/", async (req, res) => {
     }
 
     const bookingNumber = generateBookingNumber();
-
     const bookingDate = new Date().toISOString();
-
     const [result] = await conn.query<ResultSetHeader>(
       `INSERT INTO booking
        (userId, guest_name, guest_email, viewingId, booking_number, booking_confirmation, booking_date, seats)
@@ -437,23 +411,18 @@ router.post("/", async (req, res) => {
         seatIds.join(","),
       ],
     );
-
     const bookingId = result.insertId;
-
     // En rad per stol, var och en med sin egen biljettyp.
     // viewingId behövs eftersom bokad_stol har UNIQUE (viewingId, seatId).
     await conn.query<ResultSetHeader>(
       "INSERT INTO bokad_stol (bookingId, seatId, ticketTypeId, viewingId) VALUES ?",
       [tickets.map((t) => [bookingId, t.seatId, t.ticketTypeId, viewingId])],
     );
-
     await conn.commit();
-
     const totalPrice = tickets.reduce(
       (sum, t) => sum + (priceById.get(t.ticketTypeId) ?? 0),
       0,
     );
-
     let emailSent = false;
     try {
       let email = guestEmail;
@@ -464,13 +433,13 @@ router.post("/", async (req, res) => {
         );
         email = typeof users[0]?.email === "string" ? users[0].email : "";
       }
+
       if (!email) throw new Error("Ingen e-postadress för bokningsbekräftelse");
       await sendBookingConfirmationEmail({ to: email, bookingNumber });
       emailSent = true;
     } catch (error) {
       console.error("Kunde inte skicka bokningsbekräftelsen:", error);
     }
-
     res.status(201).json({
       bookingId,
       userId,
@@ -494,7 +463,6 @@ router.post("/", async (req, res) => {
     }
 
     const errno = (error as { errno?: number }).errno;
-
     // 1062 = dubblett: UNIQUE (viewingId, seatId) i bokad_stol stoppade dubbelbokning
     if (errno === 1062) {
       res.status(409).json({ error: "En eller flera stolar är redan bokade" });
@@ -507,7 +475,6 @@ router.post("/", async (req, res) => {
       });
       return;
     }
-
     console.error("Kunde inte skapa bokningen:", error);
     res.status(500).json({ error: "Kunde inte skapa bokningen" });
   } finally {
@@ -516,9 +483,9 @@ router.post("/", async (req, res) => {
 });
 
 // DELETE: Ta bort en bokning och dess stolar med bokningsnumret och inte ID nu.
+
 router.delete("/", async (req, res) => {
   const { email, booking_number } = req.body ?? {};
-
   if (
     typeof email !== "string" ||
     typeof booking_number !== "string" ||
@@ -532,10 +499,8 @@ router.delete("/", async (req, res) => {
   }
 
   const conn = await db.getConnection();
-
   try {
     await conn.beginTransaction();
-
     // Hämta bookingId med hjälp av bokningsnumret
     const [bookings] = await conn.query<RowDataPacket[]>(
       `SELECT b.bookingId
@@ -545,10 +510,8 @@ router.delete("/", async (req, res) => {
        FOR UPDATE`,
       [booking_number.trim().toUpperCase(), email.trim(), email.trim()],
     );
-
     if (bookings.length === 0) {
       await conn.rollback();
-
       res.status(404).json({
         error: "Bokningen hittades inte",
       });
@@ -556,22 +519,18 @@ router.delete("/", async (req, res) => {
     }
 
     const bookingId = bookings[0].bookingId;
-
     // Radera bokade stolar först
     await conn.query<ResultSetHeader>(
       "DELETE FROM bokad_stol WHERE bookingId = ?",
       [bookingId],
     );
-
     // Radera själva bokningen
     const [result] = await conn.query<ResultSetHeader>(
       "DELETE FROM booking WHERE bookingId = ?",
       [bookingId],
     );
-
     if (result.affectedRows === 0) {
       await conn.rollback();
-
       res.status(404).json({
         error: "Bokningen hittades inte",
       });
@@ -579,7 +538,6 @@ router.delete("/", async (req, res) => {
     }
 
     await conn.commit();
-
     res.status(204).send();
   } catch (error) {
     try {
@@ -587,9 +545,7 @@ router.delete("/", async (req, res) => {
     } catch (rollbackError) {
       console.error("Kunde inte återställa transaktionen:", rollbackError);
     }
-
     console.error("Kunde inte avboka:", error);
-
     res.status(500).json({
       error: "Kunde inte avboka",
     });

@@ -7,7 +7,7 @@ export function MoviesPage() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const [ageFilter, setAgeFilter] = useState("all");
   const [searchParams] = useSearchParams();
   const search = searchParams.get("search")?.trim() ?? "";
 
@@ -55,29 +55,37 @@ export function MoviesPage() {
     return () => controller.abort();
   }, []);
 
-  const filteredMovies = useMemo(() => {
-    const query = search.toLocaleLowerCase("sv-SE");
+const filteredMovies = useMemo(() => {
+  const query = search.toLocaleLowerCase("sv-SE");
 
-    if (!query) return movies;
+  return movies.filter((movie) => {
+    const title = (movie.title ?? "")
+      .toLocaleLowerCase("sv-SE");
 
-    return movies.filter((movie) => {
-      const title = (movie.title ?? "")
-        .toLocaleLowerCase("sv-SE");
+    const genres = (movie.genres ?? [])
+      .join(" ")
+      .toLocaleLowerCase("sv-SE");
 
-      const genres = (movie.genres ?? [])
-        .join(" ")
-        .toLocaleLowerCase("sv-SE");
+    const description = (movie.description ?? "")
+      .toLocaleLowerCase("sv-SE");
 
-      const description = (movie.description ?? "")
-        .toLocaleLowerCase("sv-SE");
+    const matchesSearch =
+      !query ||
+      title.includes(query) ||
+      genres.includes(query) ||
+      description.includes(query);
 
-      return (
-        title.includes(query) ||
-        genres.includes(query) ||
-        description.includes(query)
-      );
-    });
-  }, [movies, search]);
+    const ageLimit = Number(movie.age_limit);
+
+    const matchesAge =
+      ageFilter === "all" ||
+      (Number.isFinite(ageLimit) &&
+        movie.age_limit != null &&
+        ageLimit <= Number(ageFilter));
+
+    return matchesSearch && matchesAge;
+  });
+}, [movies, search, ageFilter]);
 
   if (loading) {
     return (
@@ -102,6 +110,58 @@ return (
       {/* Sidhuvud */}
       <header className="mb-10 border-b border-[#6c5a31]/50 pb-8">
 
+
+      {/* Åldersfilter */}
+      <div className="mb-8 rounded-xl border border-[#6c5a31]/50 bg-[#1b1b1b] p-5 font-sans sm:p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-medium text-[#f1e3be]">
+              Filtrera efter åldersgräns
+            </h2>
+
+            <p className="mt-1 text-sm text-[#aaa59b]">
+              Visa filmer som passar den valda åldern.
+            </p>
+          </div>
+
+          {ageFilter !== "all" && (
+            <button
+              type="button"
+              onClick={() => setAgeFilter("all")}
+              className="cursor-pointer text-sm text-[#d7b83e] hover:underline"
+            >
+              Rensa filter
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          {[
+            { value: "all", label: "Alla filmer" },
+            { value: "7", label: "Upp till 7 år" },
+            { value: "11", label: "Upp till 11 år" },
+            { value: "15", label: "Upp till 15 år" },
+          ].map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setAgeFilter(option.value)}
+              aria-pressed={ageFilter === option.value}
+              className={`cursor-pointer rounded-lg border px-4 py-2.5 text-sm transition ${
+                ageFilter === option.value
+                  ? "border-[#d7b83e] bg-[#d7b83e] font-semibold text-[#181818]"
+                  : "border-[#6c5a31]/60 bg-[#292929] text-[#e4ce83] hover:border-[#d7b83e]"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+
+        <p className="mt-5 text-sm text-[#aaa59b]">
+          Visar {filteredMovies.length} av {movies.length} filmer
+        </p>
+      </div>
         <h1 className="mb-3 text-4xl font-medium tracking-wide text-[#f1e3be] sm:text-5xl">
           {search
             ? `Sökresultat för "${search}"`
@@ -140,8 +200,8 @@ return (
           </h2>
 
           <p className="mb-6 max-w-md font-sans text-sm leading-relaxed text-[#aaa59b]">
-            Vi kunde inte hitta någon film som matchade din sökning.
-            Prova ett annat sökord eller utforska alla våra filmer.
+            Inga filmer matchar din sökning eller valda åldersgräns.
+            Prova att ändra filtreringen.
           </p>
 
           <Link
