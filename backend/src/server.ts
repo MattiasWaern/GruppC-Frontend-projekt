@@ -46,5 +46,5 @@ app.use("/api/auth", authRoutes);
 app.use('/api/about-us', aboutUsRouter)
 app.use('/api/seats', seatsRouter)
 app.listen(PORT, () => {
-  console.log(`Backend Körs på http://localhost:${PORT} `)
+  console.log(`Backend Körs på http://localhost:${PORT}`)
 })
