@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken"
 import db from "../db.js";
 import type { ResultSetHeader } from "mysql2";
 import type { User } from "../types/user.js";
-import { error } from "console";
 
 const router = Router();
 
