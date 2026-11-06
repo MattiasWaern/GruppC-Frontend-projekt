@@ -1,6 +1,6 @@
 export default function HeroSection() {
   return (
-    <section className="hidden md:block mt-5">
+    <section className="md:block mt-5">
       <div className="relative h-52 overflow-hidden rounded-sm sm:h-72 lg:h-96">
         <img
           src="/images/EventHero.png"
