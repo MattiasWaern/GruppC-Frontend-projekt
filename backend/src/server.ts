@@ -14,6 +14,7 @@ import aboutUsRouter from "./routes/aboutUs.js";
 import seatsRouter from "./routes/seats.js";
 import authRoutes from "./routes/auth.js";
 import contactRouter from "./routes/contact.js";
+import holdsRouter from "./routes/holds.js";
 
 try {
   const [rows] = await db.query("SELECT NOW() AS now");
@@ -40,6 +41,7 @@ app.use("/api/genres", genreRouter);
 app.use("/api/events", eventRouter);
 app.use("/api/viewings", viewingRouter);
 app.use("/api/viewings", viewingSeatsRouter);
+app.use("/api/holds", holdsRouter);
 app.use("/api/admin/roles", rolesRouter);
 app.use("/api/users", userRoutes);
 app.use("/api/theaters", theatersRouter);
