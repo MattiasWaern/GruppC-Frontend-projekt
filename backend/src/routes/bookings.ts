@@ -307,6 +307,8 @@ router.post("/", async (req, res) => {
     typeof viewingId !== "number" ||
     !Number.isInteger(viewingId) ||
     viewingId <= 0 ||
+    typeof holdToken !== "string" ||
+    !holdToken ||
     tickets.length === 0 ||
     (tickets.some((ticket) => ticket?.ticketTypeId === 1) &&
       body.ageConfirmed !== true) ||
@@ -322,7 +324,7 @@ router.post("/", async (req, res) => {
   ) {
     res.status(400).json({
       error:
-        "Ange giltig visning, biljetter och bekräfta filmens åldersregler.",
+        "Ange giltig visning, biljetter, holdToken och bekräfta filmens åldersregler.",
     });
     return;
   }
@@ -381,23 +383,21 @@ router.post("/", async (req, res) => {
     }
 
     // Reservationen måste finnas, höra till visningen och inte ha gått ut
-    if (holdToken) {
-      const [holds] = await conn.query<RowDataPacket[]>(
-        `SELECT seatId FROM seat_hold
-         WHERE holdToken = ? AND viewingId = ? AND expiresAt > NOW()
-         FOR UPDATE`,
-        [holdToken, viewingId],
-      );
+    const [holds] = await conn.query<RowDataPacket[]>(
+      `SELECT seatId FROM seat_hold
+       WHERE holdToken = ? AND viewingId = ? AND expiresAt > NOW()
+       FOR UPDATE`,
+      [holdToken, viewingId],
+    );
 
-      const heldIds = new Set(holds.map((row) => Number(row.seatId)));
+    const heldIds = new Set(holds.map((row) => Number(row.seatId)));
 
-      if (!seatIds.every((id) => heldIds.has(id))) {
-        await conn.rollback();
-        res
-          .status(410)
-          .json({ error: "Reservationen har gått ut, välj platserna igen" });
-        return;
-      }
+    if (!seatIds.every((id) => heldIds.has(id))) {
+      await conn.rollback();
+      res
+        .status(410)
+        .json({ error: "Reservationen har gått ut, välj platserna igen" });
+      return;
     }
 
     const [existing] = await conn.query<RowDataPacket[]>(
@@ -442,10 +442,8 @@ router.post("/", async (req, res) => {
     );
 
     // Reservationen har gjort sitt, platserna är nu bokade
-    if (holdToken) {
-      await conn.query("DELETE FROM seat_hold WHERE holdToken = ?", [holdToken]);
-    }
-    
+    await conn.query("DELETE FROM seat_hold WHERE holdToken = ?", [holdToken]);
+
     await conn.commit();
     const totalPrice = tickets.reduce(
       (sum, t) => sum + (priceById.get(t.ticketTypeId) ?? 0),
