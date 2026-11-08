@@ -260,6 +260,7 @@ router.post("/", async (req, res) => {
     guestName?: string;
     guestEmail?: string;
     ageConfirmed?: boolean;
+    holdToken?: string;
   };
 
   const auth = readAuthenticatedUser(req);
@@ -272,6 +273,7 @@ router.post("/", async (req, res) => {
 
   const userId = auth.userId;
   const viewingId = body.viewingId;
+  const holdToken = body.holdToken;
   const guestName =
     typeof body.guestName === "string" ? body.guestName.trim() : "";
   const guestEmail =
