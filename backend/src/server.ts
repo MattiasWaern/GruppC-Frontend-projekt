@@ -53,3 +53,11 @@ app.use("/api/contact", contactRouter);
 app.listen(PORT, () => {
   console.log(`Backend Körs på http://localhost:${PORT} `);
 });
+// tar bort utgångna reservationer varje minut
+setInterval(async () => {
+  try {
+    await db.query("DELETE FROM seat_hold WHERE expiresAt <= NOW()");
+  } catch (error) {
+    console.error("Kunde inte städa reservationer:", error);
+  }
+}, 60_000);
