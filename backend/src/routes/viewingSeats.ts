@@ -4,7 +4,7 @@ import db from "../db.js";
 
 const router = Router();
 
-router.get("/:id/seats", async (req, res) => {
+router.get("/:id/seat-status", async (req, res) => {
     const viewingId = Number(req.params.id);
     const holdToken = typeof req.query.holdToken === "string" ? req.query.holdToken : "";
   
