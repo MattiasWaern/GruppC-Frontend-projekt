@@ -7,6 +7,7 @@ import HeroSection from "./components/HeroSection";
 import MovieSection from "./components/MovieSection";
 import BookingBanner from "./components/BookingBanner";
 import Footer from "./components/Footer";
+import CookieBanner from "./components/CookieBanner";
 
 import EventPage from './pages/eventPage'
 import MovieDetails from "./pages/detailPage";
@@ -40,6 +41,8 @@ export default function App() {
 
           {/* Navigation ligger fixed på vänster sida */}
           <MobileNavigation />
+
+          <CookieBanner />
 
           {/* Gemensam yta för allt sidinnehåll */}
           <div className="min-w-0 md:ml-56">
