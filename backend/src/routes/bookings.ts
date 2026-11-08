@@ -380,6 +380,26 @@ router.post("/", async (req, res) => {
       return;
     }
 
+    // Reservationen måste finnas, höra till visningen och inte ha gått ut
+    if (holdToken) {
+      const [holds] = await conn.query<RowDataPacket[]>(
+        `SELECT seatId FROM seat_hold
+         WHERE holdToken = ? AND viewingId = ? AND expiresAt > NOW()
+         FOR UPDATE`,
+        [holdToken, viewingId],
+      );
+
+      const heldIds = new Set(holds.map((row) => Number(row.seatId)));
+
+      if (!seatIds.every((id) => heldIds.has(id))) {
+        await conn.rollback();
+        res
+          .status(410)
+          .json({ error: "Reservationen har gått ut, välj platserna igen" });
+        return;
+      }
+    }
+
     const [existing] = await conn.query<RowDataPacket[]>(
       `SELECT bs.seatId
        FROM bokad_stol bs
