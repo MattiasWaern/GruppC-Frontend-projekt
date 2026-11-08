@@ -131,4 +131,14 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.delete("/:token", async (req, res) => {
+    try {
+      await db.query("DELETE FROM seat_hold WHERE holdToken = ?", [req.params.token]);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Kunde inte släppa reservationen:", error);
+      res.status(500).json({ error: "Kunde inte släppa reservationen" });
+    }
+  });
+
 export default router;
