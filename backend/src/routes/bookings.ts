@@ -440,6 +440,12 @@ router.post("/", async (req, res) => {
       "INSERT INTO bokad_stol (bookingId, seatId, ticketTypeId, viewingId) VALUES ?",
       [tickets.map((t) => [bookingId, t.seatId, t.ticketTypeId, viewingId])],
     );
+
+    // Reservationen har gjort sitt, platserna är nu bokade
+    if (holdToken) {
+      await conn.query("DELETE FROM seat_hold WHERE holdToken = ?", [holdToken]);
+    }
+    
     await conn.commit();
     const totalPrice = tickets.reduce(
       (sum, t) => sum + (priceById.get(t.ticketTypeId) ?? 0),
