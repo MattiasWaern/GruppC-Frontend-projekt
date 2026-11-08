@@ -1,5 +1,8 @@
+import { Link } from "react-router-dom";
+
 export default function HeroSection() {
   return (
+    <Link to="/events">
     <section className="md:block mt-5">
       <div className="relative h-52 overflow-hidden rounded-sm sm:h-72 lg:h-96">
         <img
@@ -14,7 +17,7 @@ export default function HeroSection() {
         {/* Text ovanpå bilden */}
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-end px-4 pb-8 text-center">
           <p className="mb-2 rounded-full border border-[#e5ca7a] bg-black px-3 py-1 text-xs font-semibold text-[#e5ca7a]">
-            KOMMER SNART
+            Klicka här för att se mer
           </p>
 
           <h1 className="text-3xl font-bold text-white sm:text-4xl">
@@ -22,10 +25,10 @@ export default function HeroSection() {
           </h1>
 
           <p className="mt-2 text-sm text-white sm:text-base">
-            Särskilda visningar och filmupplevelser är på väg.
+            Särskilda visningar och filmupplevelser är här!
           </p>
         </div>
       </div>
     </section>
-  );
+    </Link>);
 }
