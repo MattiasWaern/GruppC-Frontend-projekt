@@ -262,28 +262,39 @@ export default function ProfilePage() {
             {!loading &&
               !error &&
               visibleBookings.map((booking) => (
-                <article
+                <details
                   key={booking.bookingId}
-                  className="overflow-hidden rounded-xl border border-[#6c5a31]/40 bg-[#242424]"
+                  className="group overflow-hidden rounded-xl border border-[#6c5a31]/40 bg-[#242424]"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#6c5a31]/30 p-4 sm:p-5">
-                    <div>
-                      <p className="mb-1 text-xs uppercase tracking-wider text-[#aaa59b]">
-                        Bokningsnummer
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 transition hover:bg-[#2d2d2d] sm:p-5 [&::-webkit-details-marker]:hidden">
+                    <div className="min-w-0">
+                      <h3 className="font-serif text-xl text-[#f1e3be] sm:text-2xl">
+                        {booking.movieTitle}
+                      </h3>
+                      <p className="mt-2 text-sm text-[#aaa59b]">
+                        {formatDate(booking.viewingDate)} · {formatTime(booking.viewingTime)}
                       </p>
-
-                      <p className="font-mono text-sm font-semibold tracking-wider text-[#e5ca7a]">
+                      <p className="mt-1 font-mono text-xs text-[#e5ca7a]">
                         {booking.bookingNumber}
                       </p>
                     </div>
-
-                    <span className="rounded-full border border-[#806b36] px-3 py-1 text-xs text-[#e5ca7a]">
-                      {booking.status === "confirmed"
-                        ? "Bekräftad"
-                        : booking.status}
-                    </span>
-                  </div>
-
+                    <div className="flex shrink-0 items-center gap-3">
+                      <span className="hidden rounded-full border border-[#806b36] px-3 py-1 text-xs text-[#e5ca7a] sm:inline-block">
+                        {booking.status === "confirmed" ? "Bekräftad" : booking.status}
+                      </span>
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                        className="h-5 w-5 text-[#e5ca7a] transition-transform group-open:rotate-180"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </div>
+                  </summary>
+                  <div className="border-t border-[#6c5a31]/30">
                   <div className="p-4 sm:p-5">
                     <h3 className="mb-5 font-serif text-2xl text-[#f1e3be]">
                       {booking.movieTitle}
@@ -352,7 +363,8 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </div>
-                </article>
+                  </div>
+                </details>
               ))}
           </div>
         </section>

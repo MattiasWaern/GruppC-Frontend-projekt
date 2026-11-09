@@ -25,7 +25,7 @@ const footerGroups = [
     title: 'SUPPORT',
     links: [
       { label: 'Hjälpcenter', href: '#hjalpcenter' },
-      { label: 'Kontakta oss', href: '#kontakt' },
+      { label: 'Kontakta oss', href: '/kontakt' },
       { label: 'Villkor', href: '#villkor' },
       { label: 'Integritet', href: '#integritet' },
     ],
