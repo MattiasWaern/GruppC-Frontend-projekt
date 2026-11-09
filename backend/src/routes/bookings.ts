@@ -260,6 +260,7 @@ router.post("/", async (req, res) => {
     guestName?: string;
     guestEmail?: string;
     ageConfirmed?: boolean;
+    holdToken?: string;
   };
 
   const auth = readAuthenticatedUser(req);
@@ -272,6 +273,7 @@ router.post("/", async (req, res) => {
 
   const userId = auth.userId;
   const viewingId = body.viewingId;
+  const holdToken = body.holdToken;
   const guestName =
     typeof body.guestName === "string" ? body.guestName.trim() : "";
   const guestEmail =
@@ -305,6 +307,8 @@ router.post("/", async (req, res) => {
     typeof viewingId !== "number" ||
     !Number.isInteger(viewingId) ||
     viewingId <= 0 ||
+    typeof holdToken !== "string" ||
+    !holdToken ||
     tickets.length === 0 ||
     (tickets.some((ticket) => ticket?.ticketTypeId === 1) &&
       body.ageConfirmed !== true) ||
@@ -320,7 +324,7 @@ router.post("/", async (req, res) => {
   ) {
     res.status(400).json({
       error:
-        "Ange giltig visning, biljetter och bekräfta filmens åldersregler.",
+        "Ange giltig visning, biljetter, holdToken och bekräfta filmens åldersregler.",
     });
     return;
   }
@@ -378,6 +382,24 @@ router.post("/", async (req, res) => {
       return;
     }
 
+    // Reservationen måste finnas, höra till visningen och inte ha gått ut
+    const [holds] = await conn.query<RowDataPacket[]>(
+      `SELECT seatId FROM seat_hold
+       WHERE holdToken = ? AND viewingId = ? AND expiresAt > NOW()
+       FOR UPDATE`,
+      [holdToken, viewingId],
+    );
+
+    const heldIds = new Set(holds.map((row) => Number(row.seatId)));
+
+    if (!seatIds.every((id) => heldIds.has(id))) {
+      await conn.rollback();
+      res
+        .status(410)
+        .json({ error: "Reservationen har gått ut, välj platserna igen" });
+      return;
+    }
+
     const [existing] = await conn.query<RowDataPacket[]>(
       `SELECT bs.seatId
        FROM bokad_stol bs
@@ -418,6 +440,10 @@ router.post("/", async (req, res) => {
       "INSERT INTO bokad_stol (bookingId, seatId, ticketTypeId, viewingId) VALUES ?",
       [tickets.map((t) => [bookingId, t.seatId, t.ticketTypeId, viewingId])],
     );
+
+    // Reservationen har gjort sitt, platserna är nu bokade
+    await conn.query("DELETE FROM seat_hold WHERE holdToken = ?", [holdToken]);
+
     await conn.commit();
     const totalPrice = tickets.reduce(
       (sum, t) => sum + (priceById.get(t.ticketTypeId) ?? 0),
