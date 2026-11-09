@@ -109,7 +109,12 @@ if (viewingData.movieId) {
           <p className="mb-6 text-green-300">
             En bokningsbekräftelse har skickats till din e-postadress.
           </p>
+
         )}
+         <p className="mb-6 text-green-300">
+            Avbokning kan göras fram till 60 minuter innan visningen. Kontakta biografen om du vill avboka.
+          </p>
+          
         {emailSent === false && (
           <p className="mb-6 text-amber-300">
             Bokningen är klar, men e-postbekräftelsen kunde inte skickas.
