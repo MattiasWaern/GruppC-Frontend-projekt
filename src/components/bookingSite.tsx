@@ -62,11 +62,17 @@ const SeatIcon: React.FC<{ className?: string; isSelected?: boolean }> = ({
     fill="currentColor"
     aria-hidden="true"
   >
-    <rect x="10" y="3" width="20" height="11" rx="2" />
-    <rect x="6" y="13" width="28" height="23" rx="3" />
+    {/* Rotera endast stolen 180 grader */}
+    <g transform="rotate(180 20 20)">
+      <rect x="10" y="3" width="20" height="11" rx="2" />
+      <rect x="6" y="13" width="28" height="23" rx="3" />
+    </g>
+
+    {/* Bocken förblir rättvänd */}
     {isSelected && (
       <path
         d="M13 23 L18 28 L27 19"
+        transform="translate(0 -5)"
         fill="none"
         stroke="#111111"
         strokeWidth="3"
