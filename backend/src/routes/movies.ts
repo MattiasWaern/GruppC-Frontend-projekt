@@ -1,7 +1,8 @@
+
 import { Router } from "express";
-import type { RowDataPacket } from "mysql2";
 import db from "../db.js";
 import { Movie } from "../types/movie.js";
+import { requireAdmin } from "../middleware/requireAdmin.js";
 
 const router = Router();
 
@@ -97,6 +98,145 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({
       error: "Kunde inte hämta filmen",
     });
+  }
+});
+
+// Lägg till en ny film med genrer
+// Endast Admin och Product Owner
+router.post("/", requireAdmin, async (req, res) => {
+  const {
+    title,
+    description,
+    duration_minutes,
+    trailer,
+    poster,
+    background_color,
+    age_limit,
+    genreIds,
+  } = req.body;
+
+  // Kontrollera obligatoriska uppgifter
+  if (
+    typeof title !== "string" ||
+    !title.trim() ||
+    typeof description !== "string" ||
+    !description.trim() ||
+    !Number.isInteger(duration_minutes) ||
+    duration_minutes <= 0 ||
+    typeof background_color !== "string" ||
+    !background_color.trim() ||
+    !Number.isInteger(age_limit) ||
+    age_limit < 0 ||
+    !Array.isArray(genreIds) ||
+    genreIds.length === 0 ||
+    !genreIds.every(
+      (id: unknown) =>
+        Number.isInteger(id) && (id as number) > 0
+    )
+  ) {
+    res.status(400).json({
+      error: "Kontrollera filmens uppgifter och välj minst en genre.",
+    });
+    return;
+  }
+
+  // Kontrollera valfria URL-fält
+  if (
+    (trailer !== undefined &&
+      trailer !== null &&
+      typeof trailer !== "string") ||
+    (poster !== undefined &&
+      poster !== null &&
+      typeof poster !== "string")
+  ) {
+    res.status(400).json({
+      error: "Trailer och poster måste vara text eller null.",
+    });
+    return;
+  }
+
+  let connection;
+
+  try {
+    connection = await db.getConnection();
+
+    // Starta databastransaktion
+    await connection.beginTransaction();
+
+    // Ta bort eventuella dubbla genre-ID:n
+    const uniqueGenreIds = [...new Set(genreIds)] as number[];
+
+    // Kontrollera att alla valda genrer finns
+    const [genres] = await connection.query<any[]>(
+      `SELECT genreId FROM genre WHERE genreId IN (?)`,
+      [uniqueGenreIds]
+    );
+
+    if (genres.length !== uniqueGenreIds.length) {
+      await connection.rollback();
+
+      res.status(400).json({
+        error: "En eller flera valda genrer finns inte.",
+      });
+      return;
+    }
+
+    // Skapa filmen
+    const [result] = await connection.query<any>(
+      `INSERT INTO movies
+        (
+          title,
+          description,
+          duration_minutes,
+          trailer,
+          poster,
+          background_color,
+          age_limit
+        )
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        title.trim(),
+        description.trim(),
+        duration_minutes,
+        trailer || null,
+        poster || null,
+        background_color.trim(),
+        age_limit,
+      ]
+    );
+
+    const movieId = result.insertId;
+
+    // Koppla filmen till valda genrer
+    const genreValues = uniqueGenreIds.map((genreId) => [
+      movieId,
+      genreId,
+    ]);
+
+    await connection.query(
+      `INSERT INTO movie_genre (movieId, genreId) VALUES ?`,
+      [genreValues]
+    );
+
+    // Spara allt tillsammans
+    await connection.commit();
+
+    res.status(201).json({
+      message: "Filmen har lagts till!",
+      movieId,
+    });
+  } catch (error) {
+    if (connection) {
+      await connection.rollback();
+    }
+
+    console.error("Kunde inte lägga till film:", error);
+
+    res.status(500).json({
+      error: "Kunde inte lägga till filmen.",
+    });
+  } finally {
+    connection?.release();
   }
 });
 
