@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 
-const [seatFeedback, setSeatFeedback] = useState("");
-
-
 type TicketCounts = {
   adult: number;
   child: number;
@@ -188,6 +185,8 @@ const BookingPage: React.FC = () => {
 
   const [bookingLoading, setBookingLoading] = useState(false);
 
+  const [seatFeedback, setSeatFeedback] = useState("");
+
   const token = localStorage.getItem("token");
 
   const isLoggedIn = Boolean(token);
@@ -195,6 +194,16 @@ const BookingPage: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    if (!seatFeedback) return;
+
+    const timeout = setTimeout(() => {
+      setSeatFeedback("");
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [seatFeedback]);
 
   useEffect(() => {
     if (!validViewingId) {
@@ -471,6 +480,22 @@ const BookingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#111111] px-4 py-8 text-[#e6c96a] sm:px-8 lg:px-12">
+      {seatFeedback && (
+        <div
+          role="alert"
+          className="fixed top-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-xl border border-[#d7b83e] bg-[#242424] px-5 py-4 text-center text-sm text-[#f1e3be] shadow-2xl"
+        >
+          <p>{seatFeedback}</p>
+
+          <button
+            type="button"
+            onClick={() => setSeatFeedback("")}
+            className="mt-3 cursor-pointer text-xs text-[#d7b83e] hover:underline"
+          >
+            Stäng
+          </button>
+        </div>
+      )}
       <div className="mx-auto w-full max-w-5xl">
         <div className="mb-10 grid grid-cols-1 items-start gap-8 sm:grid-cols-[1fr_180px] lg:grid-cols-[1fr_220px]">
           <section className="w-full max-w-md">
