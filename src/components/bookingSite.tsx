@@ -1,54 +1,41 @@
 import React, { useEffect, useState } from "react";
-
 import { Link, useNavigate, useParams } from "react-router";
+
+const [seatFeedback, setSeatFeedback] = useState("");
+
 
 type TicketCounts = {
   adult: number;
-
   child: number;
-
   senior: number;
 };
 
 type Seat = {
   id: number;
-
   rowNumber: number;
-
   seatNumber: number;
-
   isBooked: boolean;
 };
 
 type ApiSeat = {
   seatId?: number;
-
   id?: number;
-
   row?: number;
-
   rowNumber?: number;
-
   seatnumber?: number;
-
   seatNumber?: number;
-
   isBooked: number | boolean;
 };
 
 type ViewingMovie = {
   title: string;
-
   posterUrl: string | null;
-
   ageLimit: number;
 };
 
 const prices: Record<keyof TicketCounts, number> = {
   adult: 140,
-
   child: 80,
-
   senior: 120,
 };
 
@@ -371,7 +358,10 @@ const BookingPage: React.FC = () => {
   };
 
   const handleSeatClick = (seat: Seat) => {
-    if (seat.isBooked || totalTickets === 0) {
+    if (seat.isBooked) return;
+
+    if (totalTickets === 0) {
+      setSeatFeedback("Du måste välja minst en biljett först.");
       return;
     }
 
