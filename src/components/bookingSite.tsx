@@ -603,14 +603,22 @@ const BookingPage: React.FC = () => {
           </h2>
 
           {/* nedräkning medan platserna är reserverade */}
+          <p className="mb-3 text-center font-sans text-sm text-[#aaa59b]">
+            När du har valt alla platser reserveras de i 10 minuter medan du
+            slutför bokningen.
+          </p>
+
           {hold && (
             <p
               aria-live="polite"
-              className="mb-3 text-center font-serif text-[#d9bd62]"
+              className="mb-3 rounded-md border border-[#e5c86a] px-3 py-2 text-center font-serif text-lg text-[#e5c86a]"
             >
               Platserna är reserverade i{" "}
-              {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:
-              {String(secondsLeft % 60).padStart(2, "0")}
+              <strong>
+                {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:
+                {String(secondsLeft % 60).padStart(2, "0")}
+              </strong>{" "}
+              minuter till
             </p>
           )}
 
