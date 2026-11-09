@@ -47,5 +47,5 @@ app.use("/api/about-us", aboutUsRouter);
 app.use("/api/seats", seatsRouter);
 app.use("/api/contact", contactRouter);
 app.listen(PORT, () => {
-  console.log(`Backend Körs på http://localhost:${PORT} `);
-});
+  console.log(`Backend Körs på http://localhost:${PORT}`)
+})
