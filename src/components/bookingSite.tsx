@@ -12,6 +12,7 @@ type Seat = {
   rowNumber: number;
   seatNumber: number;
   isBooked: boolean;
+  mine: boolean;
 };
 
 type ApiSeat = {
@@ -21,7 +22,9 @@ type ApiSeat = {
   rowNumber?: number;
   seatnumber?: number;
   seatNumber?: number;
-  isBooked: number | boolean;
+  isBooked?: number | boolean;
+  status?: "free" | "held" | "booked";
+  mine?: boolean;
 };
 
 type ViewingMovie = {
@@ -42,12 +45,18 @@ const sek = new Intl.NumberFormat("sv-SE", {
   maximumFractionDigits: 0,
 });
 
+// tolkar status från /seat-status 
 function toSeat(raw: ApiSeat): Seat {
+  const takenByOthers = raw.status
+    ? raw.status === "booked" || (raw.status === "held" && !raw.mine)
+    : Boolean(raw.isBooked);
+
   return {
     id: Number(raw.seatId ?? raw.id),
     rowNumber: Number(raw.row ?? raw.rowNumber),
     seatNumber: Number(raw.seatnumber ?? raw.seatNumber),
-    isBooked: Boolean(raw.isBooked),
+    isBooked: takenByOthers,
+    mine: Boolean(raw.mine),
   };
 }
 
@@ -108,6 +117,12 @@ const BookingPage: React.FC = () => {
   const [guestEmail, setGuestEmail] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
 
+  // reservationen och nedräkningen
+  const [hold, setHold] = useState<{ token: string; deadline: number } | null>(
+    null,
+  );
+  const [secondsLeft, setSecondsLeft] = useState(0);
+
   const token = localStorage.getItem("token");
   const isLoggedIn = Boolean(token);
 
@@ -166,19 +181,23 @@ const BookingPage: React.FC = () => {
     return () => controller.abort();
   }, [viewingId, validViewingId]);
 
+  // hämtar platsstatus från /seat-status och uppdaterar var 4:e sekund
   useEffect(() => {
     if (!validViewingId) {
       return;
     }
 
-    const controller = new AbortController();
-    const { signal } = controller;
+    let cancelled = false;
 
     async function loadSeats() {
       try {
-        const res = await fetch(`/api/viewings/${viewingId}/seats`, {
-          signal,
-        });
+        const query = hold
+          ? `?holdToken=${encodeURIComponent(hold.token)}`
+          : "";
+
+        const res = await fetch(
+          `/api/viewings/${viewingId}/seat-status${query}`,
+        );
 
         if (!res.ok) {
           throw new Error("Kunde inte hämta sittplatserna.");
@@ -190,30 +209,37 @@ const BookingPage: React.FC = () => {
           throw new Error("Felaktigt format på sittplatserna.");
         }
 
+        if (cancelled) return;
+
         const loaded = (data as ApiSeat[]).map(toSeat);
 
         setSeats(loaded);
 
+        // ta bort valda platser som någon annan hunnit ta
         setSelectedSeatIds((current) =>
           current.filter((id) =>
             loaded.some((seat) => seat.id === id && !seat.isBooked),
           ),
         );
       } catch (err: unknown) {
-        if (err instanceof Error && err.name !== "AbortError") {
+        if (!cancelled && err instanceof Error) {
           setError(err.message);
         }
       } finally {
-        if (!signal.aborted) {
+        if (!cancelled) {
           setLoadingSeats(false);
         }
       }
     }
 
     loadSeats();
+    const intervalId = setInterval(loadSeats, 4000);
 
-    return () => controller.abort();
-  }, [viewingId, validViewingId]);
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+    };
+  }, [viewingId, validViewingId, hold?.token]);
 
   const totalTickets =
     ticketCounts.adult + ticketCounts.child + ticketCounts.senior;
@@ -229,12 +255,86 @@ const BookingPage: React.FC = () => {
     ...Array(ticketCounts.senior).fill(2),
   ] as number[];
 
+  // nedräkning mot en sluttid
+  useEffect(() => {
+    if (!hold) return;
+
+    const tick = () => {
+      const left = Math.max(0, Math.ceil((hold.deadline - Date.now()) / 1000));
+      setSecondsLeft(left);
+
+      if (left === 0) {
+        setHold(null);
+        setSelectedSeatIds([]);
+        setError("Tiden gick ut. Välj platserna igen.");
+      }
+    };
+
+    tick();
+    const intervalId = setInterval(tick, 1000);
+    return () => clearInterval(intervalId);
+  }, [hold]);
+
+  // reservera när antalet valda platser stämmer med antalet biljetter
+  useEffect(() => {
+    if (!validViewingId || totalTickets === 0) return;
+    if (selectedSeatIds.length !== totalTickets) return;
+
+    let cancelled = false;
+
+    async function reserve() {
+      try {
+        const res = await fetch("/api/holds", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            viewingId,
+            seatIds: selectedSeatIds,
+            holdToken: hold?.token,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (cancelled) return;
+
+        if (!res.ok) {
+          setHold(null);
+          setSelectedSeatIds([]);
+          setError(data.error ?? "Kunde inte reservera platserna.");
+          return;
+        }
+
+        setError("");
+        setHold({
+          token: data.holdToken,
+          deadline: Date.now() + data.secondsLeft * 1000,
+        });
+      } catch {
+        if (!cancelled) setError("Kunde inte nå servern.");
+      }
+    }
+
+    reserve();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedSeatIds, totalTickets]);
+  useEffect(() => {
+    if (hold && selectedSeatIds.length !== totalTickets) {
+      fetch(`/api/holds/${hold.token}`, { method: "DELETE" }).catch(() => {});
+      setHold(null);
+    }
+  }, [selectedSeatIds.length, totalTickets, hold]);
+
   const canContinue =
     validViewingId &&
     !loadingSeats &&
     !loadingMovie &&
     totalTickets > 0 &&
     selectedSeatIds.length === totalTickets &&
+    hold !== null &&
     (ticketCounts.child === 0 || ageConfirmed) &&
     movie !== null &&
     [0, 7, 11, 15].includes(movie.ageLimit);
@@ -313,6 +413,7 @@ const BookingPage: React.FC = () => {
           viewingId,
           tickets,
           ageConfirmed,
+          holdToken: hold?.token,
           ...(!currentToken
             ? {
                 guestName: guestName.trim(),
@@ -324,8 +425,17 @@ const BookingPage: React.FC = () => {
 
       const data = await response.json();
 
-      if (!response.ok)
+      if (!response.ok) {
+        // reservationen har gått ut eller är ogiltig
+        if (response.status === 410) {
+          setHold(null);
+          setSelectedSeatIds([]);
+        }
         throw new Error(data.error || "Kunde inte skapa bokningen.");
+      }
+
+      // bokningen har förbrukat reservationen
+      setHold(null);
 
       navigate(`/booking-confirmation/${data.bookingId}`, {
         state: { emailSent: data.emailSent },
@@ -491,6 +601,18 @@ const BookingPage: React.FC = () => {
           <h2 className="mb-2 text-center font-serif text-2xl font-normal text-[#d9bd62] sm:text-3xl">
             Välj platser
           </h2>
+
+          {/* nedräkning medan platserna är reserverade */}
+          {hold && (
+            <p
+              aria-live="polite"
+              className="mb-3 text-center font-serif text-[#d9bd62]"
+            >
+              Platserna är reserverade i{" "}
+              {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:
+              {String(secondsLeft % 60).padStart(2, "0")}
+            </p>
+          )}
 
           <div className="bg-[#1b1b1b] px-3 pb-5 pt-3 sm:px-6 sm:pb-6">
             <div className="mx-auto mb-6 flex w-fit items-center gap-3">
