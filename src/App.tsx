@@ -20,6 +20,7 @@ import { RegisterPage } from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import AboutUs from './pages/AboutUs';
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import ContactPage from "./pages/ContactPage";
 
 function HomePage() {
   return (
