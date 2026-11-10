@@ -158,37 +158,23 @@ const BookingPage: React.FC = () => {
     viewingId > 0;
 
   const [seats, setSeats] = useState<Seat[]>([]);
-
   const [movie, setMovie] = useState<ViewingMovie | null>(null);
-
   const [ticketCounts, setTicketCounts] = useState<TicketCounts>({
     adult: 0,
-
     child: 0,
-
     senior: 0,
   });
 
   const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
-
   const [ageConfirmed, setAgeConfirmed] = useState(false);
-
   const [loadingSeats, setLoadingSeats] = useState(true);
-
   const [loadingMovie, setLoadingMovie] = useState(true);
-
   const [error, setError] = useState("");
-
   const [guestName, setGuestName] = useState("");
-
   const [guestEmail, setGuestEmail] = useState("");
-
   const [bookingLoading, setBookingLoading] = useState(false);
-
   const [seatFeedback, setSeatFeedback] = useState("");
-
   const token = localStorage.getItem("token");
-
   const isLoggedIn = Boolean(token);
 
   useEffect(() => {
