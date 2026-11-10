@@ -67,13 +67,12 @@ const SeatIcon: React.FC<{ className?: string; isSelected?: boolean }> = ({
     fill="currentColor"
     aria-hidden="true"
   >
-    {/* Rotera endast stolen 180 grader */}
+    // Rotera endast stolen 180 grader
     <g transform="rotate(180 20 20)">
       <rect x="10" y="3" width="20" height="11" rx="2" />
       <rect x="6" y="13" width="28" height="23" rx="3" />
     </g>
-
-    {/* Bocken förblir rättvänd */}
+    // Bocken förblir rättvänd
     {isSelected && (
       <path
         d="M13 23 L18 28 L27 19"
@@ -86,6 +85,52 @@ const SeatIcon: React.FC<{ className?: string; isSelected?: boolean }> = ({
     )}
   </svg>
 );
+// Hitta en sammanhängande grupp lediga stolar så nära salongens mitt som möjligt.
+function findBestSeats(seats: Seat[], count: number): number[] {
+  if (count <= 0 || seats.length === 0) return [];
+
+  const rows = [...new Set(seats.map((seat) => seat.rowNumber))].sort(
+    (a, b) => a - b,
+  );
+  const preferredRowIndex = (rows.length - 1) * 0.65;
+
+  let best: { ids: number[]; score: number } | null = null;
+
+  rows.forEach((rowNumber, rowIndex) => {
+    const rowSeats = seats
+      .filter((seat) => seat.rowNumber === rowNumber)
+      .sort((a, b) => a.seatNumber - b.seatNumber);
+
+    if (rowSeats.length < count) return;
+
+    const middle = (rowSeats[0].seatNumber + rowSeats[rowSeats.length - 1].seatNumber) / 2;
+
+    for (let i = 0; i <= rowSeats.length - count; i++) {
+      const group = rowSeats.slice(i, i + count);
+
+      if (
+        group.some((seat) => seat.isBooked) ||
+        group.some((seat, index) =>
+          index > 0 && seat.seatNumber !== group[index - 1].seatNumber + 1,
+        )
+      ) {
+        continue;
+      }
+
+      const groupMiddle = (group[0].seatNumber + group[group.length - 1].seatNumber) / 2;
+      const horizontalDistance = Math.abs(groupMiddle - middle);
+      const rowDistance = Math.abs(rowIndex - preferredRowIndex);
+      const score = rowDistance * 2 + horizontalDistance;
+
+      if (!best || score < best.score) {
+        best = { ids: group.map((seat) => seat.id), score };
+      }
+    }
+  });
+
+  return best ? (best as { ids: number[]; score: number }).ids : [];
+}
+
 const BookingPage: React.FC = () => {
   const navigate = useNavigate();
   const { viewingId: viewingIdParam } = useParams<{
@@ -124,10 +169,8 @@ const BookingPage: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
   useEffect(() => {
     if (!seatFeedback) return;
-
     const timeout = setTimeout(() => setSeatFeedback(""), 3000);
     return () => clearTimeout(timeout);
   }, [seatFeedback]);
@@ -202,11 +245,15 @@ const BookingPage: React.FC = () => {
         const swapInProgress =
           syncingRef.current || holdTokenRef.current !== tokenAtStart;
         if (!swapInProgress) {
-          setSelectedSeatIds((current) =>
-            current.filter((id) =>
+          setSelectedSeatIds((current) => {
+            const stillAvailable = current.filter((id) =>
               loaded.some((seat) => seat.id === id && !seat.isBooked),
-            ),
-          );
+            );
+            // Undvik att starta om reservationen när polling inte ändrat platsvalet.
+            return stillAvailable.length === current.length
+              ? current
+              : stillAvailable;
+          });
         }
       } catch (err: unknown) {
         if (!cancelled && err instanceof Error) {
@@ -236,6 +283,25 @@ const BookingPage: React.FC = () => {
     ...Array(ticketCounts.child).fill(1),
     ...Array(ticketCounts.senior).fill(2),
   ] as number[];
+  // Förvälj platser när biljettantalet ändras, men inte vid polling.
+  const lastAutoTicketCountRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (loadingSeats) return;
+    if (lastAutoTicketCountRef.current === totalTickets) return;
+    lastAutoTicketCountRef.current = totalTickets;
+    if (totalTickets === 0) return;
+    const suggested = findBestSeats(seats, totalTickets);
+    if (suggested.length === totalTickets) {
+      setSelectedSeatIds((current) =>
+        current.length === suggested.length &&
+        current.every((id, index) => id === suggested[index])
+          ? current
+          : suggested,
+      );
+    }
+  }, [totalTickets, loadingSeats, seats]);
+  const bestSeatIds = findBestSeats(seats, totalTickets);
+
   useEffect(() => {
     if (!hold) return;
     const tick = () => {
@@ -360,7 +426,6 @@ const BookingPage: React.FC = () => {
   };
   const handleSeatClick = (seat: Seat) => {
     if (seat.isBooked) return;
-
     if (totalTickets === 0) {
       setSeatFeedback("Du måste välja minst en biljett först.");
       return;
@@ -468,7 +533,6 @@ const BookingPage: React.FC = () => {
           </button>
         </div>
       )}
-
       <div className="mx-auto w-full max-w-5xl">
         <div className="mb-10 grid grid-cols-1 items-start gap-8 sm:grid-cols-[1fr_180px] lg:grid-cols-[1fr_220px]">
           <section className="w-full max-w-md">
@@ -628,6 +692,28 @@ const BookingPage: React.FC = () => {
             <div className="mx-auto mb-6 flex h-7 w-[88%] items-center justify-center bg-[#dfbd35] font-serif text-base text-black sm:text-lg">
               Bioduken
             </div>
+            {totalTickets > 0 && !loadingSeats && (
+              <div className="mb-5 flex flex-col items-center gap-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSeatIds((current) =>
+                    current.length === bestSeatIds.length &&
+                    current.every((id, index) => id === bestSeatIds[index])
+                      ? current
+                      : bestSeatIds,
+                  )}
+                  disabled={bestSeatIds.length !== totalTickets}
+                  className="rounded-lg border border-[#dfbd35] px-5 py-2 font-serif text-sm text-[#e6c96a] transition hover:bg-[#dfbd35] hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Välj bästa platser
+                </button>
+                <p className="text-xs text-[#aaa59b]">
+                  {bestSeatIds.length === totalTickets
+                    ? "Vi föreslår lediga platser tillsammans nära mitten av salongen."
+                    : "Inga sammanhängande platser finns för hela sällskapet. Välj platser manuellt."}
+                </p>
+              </div>
+            )}
             {loadingSeats ? (
               <p className="py-10 text-center font-serif text-[#d9bd62]">
                 Laddar platser...
@@ -734,7 +820,7 @@ const BookingPage: React.FC = () => {
                   autoComplete="email"
                   value={guestEmail}
                   onChange={(e) => setGuestEmail(e.target.value)}
-                  placeholder="namn@exempel.se"
+                  placeholder="namn\@exempel.se"
                   className="w-full rounded-lg border border-[#6c5a31]/50 bg-[#292929] px-4 py-3 text-white outline-none focus:border-[#d7b83e]"
                 />
               </div>
