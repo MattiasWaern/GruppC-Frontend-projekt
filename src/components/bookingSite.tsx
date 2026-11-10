@@ -27,10 +27,16 @@ type ApiSeat = {
   mine?: boolean;
 };
 
-type ViewingMovie = {
+type Viewing = {
+  movieId?: number | null;
+  eventId?: number | null;
+};
+
+type BookingItem = {
   title: string;
   posterUrl: string | null;
-  ageLimit: number;
+  ageLimit: number | null;
+  type: "movie" | "event";
 };
 
 type Hold = {
@@ -44,6 +50,8 @@ const prices: Record<keyof TicketCounts, number> = {
   child: 80,
   senior: 120,
 };
+
+const validAgeLimits = [0, 7, 11, 15];
 
 const sek = new Intl.NumberFormat("sv-SE", {
   style: "currency",
@@ -66,7 +74,7 @@ function toSeat(raw: ApiSeat): Seat {
   };
 }
 
-// ikonerna för sittplatserna, rygg och sits + lagt till checkmark om platsen är vald
+// Ikonerna för sittplatserna, rygg och sits + checkmark om platsen är vald
 const SeatIcon: React.FC<{ className?: string; isSelected?: boolean }> = ({
   className = "",
   isSelected = false,
@@ -108,16 +116,18 @@ const BookingPage: React.FC = () => {
     viewingId > 0;
 
   const [seats, setSeats] = useState<Seat[]>([]);
-  const [movie, setMovie] = useState<ViewingMovie | null>(null);
+  const [bookingItem, setBookingItem] = useState<BookingItem | null>(null);
+
   const [ticketCounts, setTicketCounts] = useState<TicketCounts>({
     adult: 0,
     child: 0,
     senior: 0,
   });
+
   const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [loadingSeats, setLoadingSeats] = useState(true);
-  const [loadingMovie, setLoadingMovie] = useState(true);
+  const [loadingItem, setLoadingItem] = useState(true);
   const [error, setError] = useState("");
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
@@ -138,6 +148,7 @@ const BookingPage: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Hämtar visningen och kontrollerar om det gäller en film eller ett event
   useEffect(() => {
     if (!validViewingId) {
       return;
@@ -146,7 +157,7 @@ const BookingPage: React.FC = () => {
     const controller = new AbortController();
     const { signal } = controller;
 
-    async function loadMovie() {
+    async function loadBookingItem() {
       try {
         const viewingRes = await fetch(`/api/viewings/${viewingId}`, {
           signal,
@@ -156,35 +167,82 @@ const BookingPage: React.FC = () => {
           throw new Error("Kunde inte hämta visningen.");
         }
 
-        const viewing: { movieId: number } = await viewingRes.json();
+        const viewing: Viewing = await viewingRes.json();
 
-        const movieRes = await fetch(`/api/movies/${viewing.movieId}`, {
-          signal,
-        });
+        // Om visningen har movieId hämtas filmen
+        if (viewing.movieId) {
+          const itemRes = await fetch(
+            `/api/movies/${viewing.movieId}`,
+            { signal },
+          );
 
-        if (!movieRes.ok) {
-          throw new Error("Kunde inte hämta filmens information.");
+          if (!itemRes.ok) {
+            throw new Error("Kunde inte hämta filmens information.");
+          }
+
+          const data = await itemRes.json();
+
+          const ageLimitValue = data.ageLimit ?? data.age_limit;
+          const parsedAgeLimit =
+            ageLimitValue === null || ageLimitValue === undefined
+              ? null
+              : Number(ageLimitValue);
+
+          setBookingItem({
+            title: data.title ?? data.name ?? "",
+            posterUrl: data.posterUrl ?? data.poster ?? null,
+            ageLimit:
+              parsedAgeLimit !== null && Number.isFinite(parsedAgeLimit)
+                ? parsedAgeLimit
+                : null,
+            type: "movie",
+          });
         }
+        // Om visningen har eventId hämtas evenemanget
+        else if (viewing.eventId) {
+          const itemRes = await fetch(
+            `/api/events/${viewing.eventId}`,
+            { signal },
+          );
 
-        const data = await movieRes.json();
+          if (!itemRes.ok) {
+            throw new Error("Kunde inte hämta evenemangets information.");
+          }
 
-        setMovie({
-          title: data.title ?? data.name ?? "",
-          posterUrl: data.posterUrl ?? data.poster ?? null,
-          ageLimit: Number(data.age_limit),
-        });
+          const data = await itemRes.json();
+
+          const ageLimitValue = data.ageLimit ?? data.age_limit;
+          const parsedAgeLimit =
+            ageLimitValue === null || ageLimitValue === undefined
+              ? null
+              : Number(ageLimitValue);
+
+          setBookingItem({
+            title: data.title ?? data.name ?? "",
+            posterUrl: data.posterUrl ?? data.poster ?? null,
+            ageLimit:
+              parsedAgeLimit !== null && Number.isFinite(parsedAgeLimit)
+                ? parsedAgeLimit
+                : null,
+            type: "event",
+          });
+        } else {
+          throw new Error(
+            "Visningen är inte kopplad till någon film eller något evenemang.",
+          );
+        }
       } catch (err: unknown) {
         if (err instanceof Error && err.name !== "AbortError") {
           setError(err.message);
         }
       } finally {
         if (!signal.aborted) {
-          setLoadingMovie(false);
+          setLoadingItem(false);
         }
       }
     }
 
-    loadMovie();
+    loadBookingItem();
 
     return () => controller.abort();
   }, [viewingId, validViewingId]);
@@ -300,8 +358,6 @@ const BookingPage: React.FC = () => {
       totalTickets > 0 && selectedSeatIds.length === totalTickets;
     const seatIds = [...selectedSeatIds];
 
-    if (!complete) setHold(null);
-
     async function syncHold(isComplete: boolean, ids: number[]) {
       syncingRef.current = true;
 
@@ -317,6 +373,7 @@ const BookingPage: React.FC = () => {
               holdTokenRef.current = null;
             }
           }
+          setHold(null);
           return;
         }
 
@@ -365,7 +422,7 @@ const BookingPage: React.FC = () => {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [selectedSeatIds, totalTickets, validViewingId]);
+  }, [selectedSeatIds, totalTickets, validViewingId, viewingId]);
 
   // släpp reservationen om användaren lämnar sidan utan att boka
   useEffect(() => {
@@ -385,17 +442,25 @@ const BookingPage: React.FC = () => {
     hold !== null &&
     hold.seatIds.length === selectedSeatIds.length &&
     hold.seatIds.every((id) => selectedSeatIds.includes(id));
+  // Ålderskontrollen används för både film och event om en åldersgräns finns
+  const hasAgeLimit =
+    bookingItem !== null && bookingItem.ageLimit !== null;
+
+  const validAgeLimit =
+    bookingItem !== null &&
+    (bookingItem.ageLimit === null ||
+      validAgeLimits.includes(bookingItem.ageLimit));
 
   const canContinue =
-    validViewingId &&
-    !loadingSeats &&
-    !loadingMovie &&
-    totalTickets > 0 &&
-    selectedSeatIds.length === totalTickets &&
-    holdMatchesSelection &&
-    (ticketCounts.child === 0 || ageConfirmed) &&
-    movie !== null &&
-    [0, 7, 11, 15].includes(movie.ageLimit);
+  validViewingId &&
+  !loadingSeats &&
+  !loadingItem &&
+  totalTickets > 0 &&
+  selectedSeatIds.length === totalTickets &&
+  holdMatchesSelection &&
+  (ticketCounts.child === 0 || !hasAgeLimit || ageConfirmed) &&
+  bookingItem !== null &&
+  validAgeLimit;
 
   const handleTicketChange = (type: keyof TicketCounts, delta: number) => {
     const newValue = ticketCounts[type] + delta;
@@ -570,7 +635,7 @@ const BookingPage: React.FC = () => {
                     </svg>
                   </button>
 
-                  <span className="w-4 text-center text-sm tabular-nums">
+                  <span className="w-4 text-center tabular-nums">
                     {ticketCounts[type]}
                   </span>
 
@@ -601,46 +666,56 @@ const BookingPage: React.FC = () => {
           </section>
 
           <div className="justify-self-center">
-            {loadingMovie ? (
+            {loadingItem ? (
               <div className="flex aspect-2/3 w-36 items-center justify-center rounded-lg bg-[#1b1b1b] text-sm text-zinc-400 lg:w-40">
-                Laddar film...
+                Laddar...
               </div>
-            ) : movie?.posterUrl ? (
+            ) : bookingItem?.posterUrl ? (
               <img
-                src={movie.posterUrl}
-                alt={`Filmplansch för ${movie.title}`}
+                src={bookingItem.posterUrl}
+                alt={`Bild för ${bookingItem.title}`}
                 className="aspect-2/3 w-36 rounded-lg border border-[#9f8847] object-cover lg:w-40"
               />
             ) : (
               <div className="flex aspect-2/3 w-36 items-center justify-center rounded-lg border border-[#9f8847] bg-[#1b1b1b] p-3 text-center font-serif text-sm text-[#d9bd62] lg:w-40">
-                Ingen plansch tillgänglig
+                Ingen bild tillgänglig
               </div>
             )}
 
-            {movie && (
-              <h2 className="mt-2 max-w-40 text-center font-serif text-sm text-[#d9bd62]">
-                {movie.title}
-              </h2>
+            {bookingItem && (
+              <div className="mt-2 max-w-40 text-center">
+                <h2 className="font-serif text-sm text-[#d9bd62]">
+                  {bookingItem.title}
+                </h2>
+                <p className="mt-1 text-xs text-[#aaa59b]">
+                  {bookingItem.type === "event" ? "Evenemang" : "Film"}
+                </p>
+              </div>
             )}
           </div>
         </div>
 
-        {ticketCounts.child > 0 && (
+        {ticketCounts.child > 0 && hasAgeLimit && (
           <section className="mb-8 rounded-xl border border-[#6c5a31]/50 bg-[#1b1b1b] p-5 font-sans sm:p-6">
             <h2 className="mb-2 font-serif text-xl text-[#f1e3be]">
               Åldersgräns
             </h2>
+
             <p className="mb-4 text-sm text-[#e5ca7a]">
-              {movie
-                ? `Filmens åldersgräns: ${movie.ageLimit === 0 ? "Barntillåten" : `${movie.ageLimit} år`}`
-                : "Laddar filmens åldersgräns..."}
+              {bookingItem?.type === "event" ? "Evenemangets" : "Filmens"}{" "}
+              åldersgräns:{" "}
+              {bookingItem?.ageLimit === 0
+                ? "Barntillåten"
+                : `${bookingItem?.ageLimit} år`}
             </p>
+
             <p className="mb-4 text-sm leading-relaxed text-[#aaa59b]">
               Vid 7-årsgräns får yngre barn följa med en vuxen (18+). Vid
               11-årsgräns får barn från 7 år följa med en vuxen. Vid 15-årsgräns
               får ungdomar från 11 år följa med en vuxen. Ålder kan kontrolleras
               vid insläpp.
             </p>
+
             <label className="flex cursor-pointer items-start gap-3 text-sm text-[#f1e3be]">
               <input
                 type="checkbox"
@@ -649,7 +724,7 @@ const BookingPage: React.FC = () => {
                 className="mt-1 h-4 w-4 shrink-0 accent-[#dfbd35]"
               />
               <span>
-                Jag bekräftar att alla besökare uppfyller filmens åldersregler.
+                Jag bekräftar att alla besökare uppfyller gällande åldersregler.
               </span>
             </label>
           </section>
