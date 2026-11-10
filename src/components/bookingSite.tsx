@@ -66,7 +66,6 @@ function toSeat(raw: ApiSeat): Seat {
 
     seatNumber: Number(raw.seatnumber ?? raw.seatNumber),
 
-    isBooked: Boolean(raw.isBooked),
     isBooked: takenByOthers,
     mine: Boolean(raw.mine),
   };
@@ -276,9 +275,6 @@ const BookingPage: React.FC = () => {
       return;
     }
 
-    const controller = new AbortController();
-
-    const { signal } = controller;
     let cancelled = false;
 
     async function loadSeats() {
