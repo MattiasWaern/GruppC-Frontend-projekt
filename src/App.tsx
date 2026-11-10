@@ -14,6 +14,7 @@ import MovieDetails from "./pages/detailPage";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import BookingPage from "./components/bookingSite";
 import CancelBookingPage from "./pages/CancelBookingPage";
+import ContactPage from "./pages/ContactPage";
 import { MoviesPage } from "./pages/MoviesPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";

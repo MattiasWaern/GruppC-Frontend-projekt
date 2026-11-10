@@ -5,6 +5,7 @@ import movieRouter from "./routes/movies.js";
 import genreRouter from "./routes/genres.js";
 import eventRouter from "./routes/event.js";
 import viewingRouter from "./routes/viewings.js";
+import viewingSeatsRouter from "./routes/viewingSeats.js";
 import theatersRouter from "./routes/theater.js";
 import rolesRouter from "./routes/roles.js";
 import userRoutes from "./routes/users.js";
@@ -13,6 +14,7 @@ import aboutUsRouter from "./routes/aboutUs.js";
 import seatsRouter from "./routes/seats.js";
 import authRoutes from "./routes/auth.js";
 import contactRouter from "./routes/contact.js";
+import holdsRouter from "./routes/holds.js";
 
 try {
   const [rows] = await db.query("SELECT NOW() AS now");
@@ -38,6 +40,8 @@ app.use("/api/movies", movieRouter);
 app.use("/api/genres", genreRouter);
 app.use("/api/events", eventRouter);
 app.use("/api/viewings", viewingRouter);
+app.use("/api/viewings", viewingSeatsRouter);
+app.use("/api/holds", holdsRouter);
 app.use("/api/admin/roles", rolesRouter);
 app.use("/api/users", userRoutes);
 app.use("/api/theaters", theatersRouter);
@@ -47,5 +51,13 @@ app.use("/api/about-us", aboutUsRouter);
 app.use("/api/seats", seatsRouter);
 app.use("/api/contact", contactRouter);
 app.listen(PORT, () => {
-  console.log(`Backend Körs på http://localhost:${PORT}`)
-})
+  console.log(`Backend Körs på http://localhost:${PORT} `);
+});
+// tar bort utgångna reservationer varje minut
+setInterval(async () => {
+  try {
+    await db.query("DELETE FROM seat_hold WHERE expiresAt <= NOW()");
+  } catch (error) {
+    console.error("Kunde inte städa reservationer:", error);
+  }
+}, 60_000);
