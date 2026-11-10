@@ -47,7 +47,9 @@ const prices: Record<keyof TicketCounts, number> = {
 
 const sek = new Intl.NumberFormat("sv-SE", {
   style: "currency",
+
   currency: "SEK",
+
   maximumFractionDigits: 0,
 });
 
@@ -59,16 +61,22 @@ function toSeat(raw: ApiSeat): Seat {
 
   return {
     id: Number(raw.seatId ?? raw.id),
+
     rowNumber: Number(raw.row ?? raw.rowNumber),
+
     seatNumber: Number(raw.seatnumber ?? raw.seatNumber),
+
+    isBooked: Boolean(raw.isBooked),
     isBooked: takenByOthers,
     mine: Boolean(raw.mine),
   };
 }
 
 // ikonerna för sittplatserna, rygg och sits + lagt till checkmark om platsen är vald
+
 const SeatIcon: React.FC<{ className?: string; isSelected?: boolean }> = ({
   className = "",
+
   isSelected = false,
 }) => (
   <svg
@@ -77,11 +85,20 @@ const SeatIcon: React.FC<{ className?: string; isSelected?: boolean }> = ({
     fill="currentColor"
     aria-hidden="true"
   >
-    <rect x="10" y="3" width="20" height="11" rx="2" />
-    <rect x="6" y="13" width="28" height="23" rx="3" />
+    {/* Rotera endast stolen 180 grader */}
+
+    <g transform="rotate(180 20 20)">
+      <rect x="10" y="3" width="20" height="11" rx="2" />
+
+      <rect x="6" y="13" width="28" height="23" rx="3" />
+    </g>
+
+    {/* Bocken förblir rättvänd */}
+
     {isSelected && (
       <path
         d="M13 23 L18 28 L27 19"
+        transform="translate(0 -5)"
         fill="none"
         stroke="#111111"
         strokeWidth="3"
@@ -91,6 +108,55 @@ const SeatIcon: React.FC<{ className?: string; isSelected?: boolean }> = ({
     )}
   </svg>
 );
+
+// Hitta en sammanhängande grupp lediga stolar så nära salongens mitt som möjligt.
+function findBestSeats(seats: Seat[], count: number): number[] {
+  if (count <= 0 || seats.length === 0) return [];
+
+  const rows = [...new Set(seats.map((seat) => seat.rowNumber))].sort(
+    (a, b) => a - b,
+  );
+  const preferredRowIndex = (rows.length - 1) * 0.65;
+
+  let best: { ids: number[]; score: number } | null = null;
+
+  rows.forEach((rowNumber, rowIndex) => {
+    const rowSeats = seats
+      .filter((seat) => seat.rowNumber === rowNumber)
+      .sort((a, b) => a.seatNumber - b.seatNumber);
+
+    if (rowSeats.length < count) return;
+
+    const middle =
+      (rowSeats[0].seatNumber + rowSeats[rowSeats.length - 1].seatNumber) / 2;
+
+    for (let i = 0; i <= rowSeats.length - count; i++) {
+      const group = rowSeats.slice(i, i + count);
+
+      if (
+        group.some((seat) => seat.isBooked) ||
+        group.some(
+          (seat, index) =>
+            index > 0 && seat.seatNumber !== group[index - 1].seatNumber + 1,
+        )
+      ) {
+        continue;
+      }
+
+      const groupMiddle =
+        (group[0].seatNumber + group[group.length - 1].seatNumber) / 2;
+      const horizontalDistance = Math.abs(groupMiddle - middle);
+      const rowDistance = Math.abs(rowIndex - preferredRowIndex);
+      const score = rowDistance * 2 + horizontalDistance;
+
+      if (!best || score < best.score) {
+        best = { ids: group.map((seat) => seat.id), score };
+      }
+    }
+  });
+
+  return best ? (best as { ids: number[]; score: number }).ids : [];
+}
 
 const BookingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -114,6 +180,7 @@ const BookingPage: React.FC = () => {
     child: 0,
     senior: 0,
   });
+
   const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [loadingSeats, setLoadingSeats] = useState(true);
@@ -122,6 +189,7 @@ const BookingPage: React.FC = () => {
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [seatFeedback, setSeatFeedback] = useState("");
 
   // Reservationen och nedräkningen
   const [hold, setHold] = useState<Hold | null>(null);
@@ -139,11 +207,22 @@ const BookingPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (!seatFeedback) return;
+
+    const timeout = setTimeout(() => {
+      setSeatFeedback("");
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [seatFeedback]);
+
+  useEffect(() => {
     if (!validViewingId) {
       return;
     }
 
     const controller = new AbortController();
+
     const { signal } = controller;
 
     async function loadMovie() {
@@ -170,7 +249,9 @@ const BookingPage: React.FC = () => {
 
         setMovie({
           title: data.title ?? data.name ?? "",
+
           posterUrl: data.posterUrl ?? data.poster ?? null,
+
           ageLimit: Number(data.age_limit),
         });
       } catch (err: unknown) {
@@ -195,6 +276,9 @@ const BookingPage: React.FC = () => {
       return;
     }
 
+    const controller = new AbortController();
+
+    const { signal } = controller;
     let cancelled = false;
 
     async function loadSeats() {
@@ -267,10 +351,20 @@ const BookingPage: React.FC = () => {
 
   const ticketTypes = [
     ...Array(ticketCounts.adult).fill(3),
+
     ...Array(ticketCounts.child).fill(1),
+
     ...Array(ticketCounts.senior).fill(2),
   ] as number[];
 
+  // Föreslå nya platser när biljettantalet eller salongens platser ändras.
+  // Man kan fortfarande klicka på andra platser manuellt efteråt.
+  useEffect(() => {
+    if (loadingSeats) return;
+    setSelectedSeatIds(findBestSeats(seats, totalTickets));
+  }, [seats, totalTickets, loadingSeats]);
+
+  const bestSeatIds = findBestSeats(seats, totalTickets);
   useEffect(() => {
     if (!hold) return;
 
@@ -406,18 +500,24 @@ const BookingPage: React.FC = () => {
 
     const next = {
       ...ticketCounts,
+
       [type]: newValue,
     };
 
     const nextTotal = next.adult + next.child + next.senior;
 
     setTicketCounts(next);
+
     setAgeConfirmed(false);
+
     setSelectedSeatIds((current) => current.slice(0, nextTotal));
   };
 
   const handleSeatClick = (seat: Seat) => {
-    if (seat.isBooked || totalTickets === 0) {
+    if (seat.isBooked) return;
+
+    if (totalTickets === 0) {
+      setSeatFeedback("Du måste välja minst en biljett först.");
       return;
     }
 
@@ -444,17 +544,20 @@ const BookingPage: React.FC = () => {
     if (!currentToken) {
       if (guestName.trim().length < 2) {
         setError("Ange ditt namn.");
+
         return;
       }
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
         setError("Ange en giltig e-postadress.");
+
         return;
       }
     }
 
     const tickets = selectedSeatIds.map((seatId, index) => ({
       seatId,
+
       ticketTypeId: ticketTypes[index],
     }));
 
@@ -463,18 +566,25 @@ const BookingPage: React.FC = () => {
 
       const response = await fetch("/api/bookings", {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
+
           ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}),
         },
+
         body: JSON.stringify({
           viewingId,
+
           tickets,
+
           ageConfirmed,
+
           holdToken: hold?.token,
           ...(!currentToken
             ? {
                 guestName: guestName.trim(),
+
                 guestEmail: guestEmail.trim(),
               }
             : {}),
@@ -518,6 +628,7 @@ const BookingPage: React.FC = () => {
       <div className="flex min-h-screen items-center justify-center bg-[#111111] px-4 text-center text-[#e6c96a]">
         <div>
           <h1 className="mb-3 font-serif text-2xl">Ogiltig visning</h1>
+
           <p>Kontrollera webbadressen och försök igen.</p>
         </div>
       </div>
@@ -526,6 +637,22 @@ const BookingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#111111] px-4 py-8 text-[#e6c96a] sm:px-8 lg:px-12">
+      {seatFeedback && (
+        <div
+          role="alert"
+          className="fixed top-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-xl border border-[#d7b83e] bg-[#242424] px-5 py-4 text-center text-sm text-[#f1e3be] shadow-2xl"
+        >
+          <p>{seatFeedback}</p>
+
+          <button
+            type="button"
+            onClick={() => setSeatFeedback("")}
+            className="mt-3 cursor-pointer text-xs text-[#d7b83e] hover:underline"
+          >
+            Stäng
+          </button>
+        </div>
+      )}
       <div className="mx-auto w-full max-w-5xl">
         <div className="mb-10 grid grid-cols-1 items-start gap-8 sm:grid-cols-[1fr_180px] lg:grid-cols-[1fr_220px]">
           <section className="w-full max-w-md">
@@ -537,7 +664,9 @@ const BookingPage: React.FC = () => {
               {(
                 [
                   ["adult", "Vuxen"],
+
                   ["child", "Barn"],
+
                   ["senior", "Pensionär"],
                 ] as [keyof TicketCounts, string][]
               ).map(([type, label]) => (
@@ -566,6 +695,7 @@ const BookingPage: React.FC = () => {
                       strokeWidth="1.8"
                     >
                       <circle cx="12" cy="12" r="9" />
+
                       <path d="M7 12h10" />
                     </svg>
                   </button>
@@ -588,6 +718,7 @@ const BookingPage: React.FC = () => {
                       strokeWidth="1.8"
                     >
                       <circle cx="12" cy="12" r="9" />
+
                       <path d="M12 7v10M7 12h10" />
                     </svg>
                   </button>
@@ -630,17 +761,20 @@ const BookingPage: React.FC = () => {
             <h2 className="mb-2 font-serif text-xl text-[#f1e3be]">
               Åldersgräns
             </h2>
+
             <p className="mb-4 text-sm text-[#e5ca7a]">
               {movie
                 ? `Filmens åldersgräns: ${movie.ageLimit === 0 ? "Barntillåten" : `${movie.ageLimit} år`}`
                 : "Laddar filmens åldersgräns..."}
             </p>
+
             <p className="mb-4 text-sm leading-relaxed text-[#aaa59b]">
               Vid 7-årsgräns får yngre barn följa med en vuxen (18+). Vid
               11-årsgräns får barn från 7 år följa med en vuxen. Vid 15-årsgräns
               får ungdomar från 11 år följa med en vuxen. Ålder kan kontrolleras
               vid insläpp.
             </p>
+
             <label className="flex cursor-pointer items-start gap-3 text-sm text-[#f1e3be]">
               <input
                 type="checkbox"
@@ -648,6 +782,7 @@ const BookingPage: React.FC = () => {
                 onChange={(event) => setAgeConfirmed(event.target.checked)}
                 className="mt-1 h-4 w-4 shrink-0 accent-[#dfbd35]"
               />
+
               <span>
                 Jag bekräftar att alla besökare uppfyller filmens åldersregler.
               </span>
@@ -684,16 +819,19 @@ const BookingPage: React.FC = () => {
             <div className="mx-auto mb-6 flex w-fit items-center gap-3">
               <div className="flex w-24 flex-col items-center gap-1 text-white">
                 <span className="font-serif text-sm sm:text-lg">Upptagen</span>
+
                 <SeatIcon className="text-[#D46A70]" />
               </div>
 
               <div className="flex w-24 flex-col items-center gap-1 text-white">
                 <span className="font-serif text-sm sm:text-lg">Ledig</span>
+
                 <SeatIcon className="text-[#A8C982]" />
               </div>
 
               <div className="flex w-24 flex-col items-center gap-1 text-white">
                 <span className="font-serif text-sm sm:text-lg">Vald</span>
+
                 <SeatIcon className="text-[#E5C86A]" isSelected={true} />
               </div>
             </div>
@@ -701,6 +839,24 @@ const BookingPage: React.FC = () => {
             <div className="mx-auto mb-6 flex h-7 w-[88%] items-center justify-center bg-[#dfbd35] font-serif text-base text-black sm:text-lg">
               Bioduken
             </div>
+
+            {totalTickets > 0 && !loadingSeats && (
+              <div className="mb-5 flex flex-col items-center gap-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSeatIds(bestSeatIds)}
+                  disabled={bestSeatIds.length !== totalTickets}
+                  className="rounded-lg border border-[#dfbd35] px-5 py-2 font-serif text-sm text-[#e6c96a] transition hover:bg-[#dfbd35] hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Välj bästa platser
+                </button>
+                <p className="text-xs text-[#aaa59b]">
+                  {bestSeatIds.length === totalTickets
+                    ? "Vi föreslår lediga platser tillsammans nära mitten av salongen."
+                    : "Inga sammanhängande platser finns för hela sällskapet. Välj platser manuellt."}
+                </p>
+              </div>
+            )}
 
             {loadingSeats ? (
               <p className="py-10 text-center font-serif text-[#d9bd62]">
@@ -714,7 +870,9 @@ const BookingPage: React.FC = () => {
               <div className="space-y-2 sm:space-y-3">
                 {rows.map((rowNumber) => {
                   const rowSeats = seats
+
                     .filter((seat) => seat.rowNumber === rowNumber)
+
                     .sort((a, b) => a.seatNumber - b.seatNumber);
 
                   return (
@@ -764,6 +922,7 @@ const BookingPage: React.FC = () => {
               >
                 {selectedSeatIds.length > 0
                   ? selectedSeatIds
+
                       .map((id) => {
                         const seat = seats.find((item) => item.id === id);
 
@@ -771,7 +930,9 @@ const BookingPage: React.FC = () => {
                           ? `Rad ${seat.rowNumber}, Plats ${seat.seatNumber}`
                           : "";
                       })
+
                       .filter(Boolean)
+
                       .join(" · ")
                   : "Välj dina platser"}
               </div>
