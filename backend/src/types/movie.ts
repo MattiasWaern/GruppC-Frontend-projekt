@@ -5,9 +5,16 @@ export interface Movie extends RowDataPacket {
     title: string
     description: string
     duration_minutes: number
-    trailer: string
-    cover_picture: string
+    trailer: string | null
+    poster: string | null
     background_color: string
     age_limit: number
-    genres: string[] | null;
+    genres: string[] | null
+
+    director: string | null
+    actors: string | null
+    original_title: string | null
+    original_language: string | null
+    premiere: string | null
+
 }
