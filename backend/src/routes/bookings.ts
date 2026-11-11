@@ -141,7 +141,7 @@ router.get("/mine", async (req, res) => {
         v.viewingId,
         v.viewing_date AS viewingDate,
         v.viewing_start_time AS viewingTime,
-        m.title AS movieTitle,
+        COALESCE(m.title, e.title) AS movieTitle,
         t.name AS theaterName,
         COUNT(bs.seatId) AS ticketCount,
         COALESCE(SUM(tt.price), 0) AS totalPrice,
@@ -153,8 +153,10 @@ router.get("/mine", async (req, res) => {
       FROM booking b
       INNER JOIN viewing v
         ON v.viewingId = b.viewingId
-      INNER JOIN movies m
+      LEFT JOIN movies m
         ON m.movieId = v.movieId
+      LEFT JOIN event e
+        ON e.eventId = v.eventId
       INNER JOIN theater t
         ON t.theaterId = v.theaterId
       LEFT JOIN bokad_stol bs
@@ -173,6 +175,7 @@ router.get("/mine", async (req, res) => {
         v.viewing_date,
         v.viewing_start_time,
         m.title,
+        e.title,
         t.name
       ORDER BY
         v.viewing_date DESC,
@@ -310,8 +313,6 @@ router.post("/", async (req, res) => {
     typeof holdToken !== "string" ||
     !holdToken ||
     tickets.length === 0 ||
-    (tickets.some((ticket) => ticket?.ticketTypeId === 1) &&
-      body.ageConfirmed !== true) ||
     !tickets.every(
       (t) =>
         t &&
@@ -336,7 +337,7 @@ router.post("/", async (req, res) => {
     await conn.beginTransaction();
     // Låser visningen så att två bokningar för samma visning inte körs samtidigt.
     const [viewings] = await conn.query<RowDataPacket[]>(
-      "SELECT v.theaterId, m.age_limit AS ageLimit FROM viewing v INNER JOIN movies m ON m.movieId = v.movieId WHERE v.viewingId = ? FOR UPDATE",
+      "SELECT v.theaterId, v.movieId, v.eventId, m.age_limit AS ageLimit FROM viewing v LEFT JOIN movies m ON m.movieId = v.movieId WHERE v.viewingId = ? FOR UPDATE",
       [viewingId],
     );
     if (viewings.length === 0) {
@@ -345,12 +346,22 @@ router.post("/", async (req, res) => {
       return;
     }
 
-    const ageLimit =
-      viewings[0].ageLimit == null ? Number.NaN : Number(viewings[0].ageLimit);
-    if (![0, 7, 11, 15].includes(ageLimit)) {
-      await conn.rollback();
-      res.status(400).json({ error: "Filmens åldersgräns är ogiltig." });
-      return;
+    if (viewings[0].movieId !== null) {
+      const ageLimit =
+        viewings[0].ageLimit == null ? Number.NaN : Number(viewings[0].ageLimit);
+      if (![0, 7, 11, 15].includes(ageLimit)) {
+        await conn.rollback();
+        res.status(400).json({ error: "Filmens åldersgräns är ogiltig." });
+        return;
+      }
+      if (
+        tickets.some((ticket) => ticket.ticketTypeId === 1) &&
+        body.ageConfirmed !== true
+      ) {
+        await conn.rollback();
+        res.status(400).json({ error: "Bekräfta filmens åldersregler." });
+        return;
+      }
     }
 
     // Hämta priser för alla biljettyper som används.

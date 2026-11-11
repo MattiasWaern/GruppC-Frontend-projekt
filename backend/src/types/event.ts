@@ -5,4 +5,5 @@ export interface Event {
     description: string
     poster: string
     categoryId: number
+    categoryName: string
 }

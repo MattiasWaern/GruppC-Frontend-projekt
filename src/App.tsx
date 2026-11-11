@@ -10,6 +10,7 @@ import Footer from "./components/Footer";
 import CookieBanner from "./components/CookieBanner";
 
 import EventPage from './pages/eventPage'
+import { EventDetailPage } from './pages/eventdetailPage'
 import MovieDetails from "./pages/detailPage";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import BookingPage from "./components/bookingSite";
@@ -23,7 +24,7 @@ import ProfilePage from "./pages/ProfilePage";
 import AboutUs from './pages/AboutUs';
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AddMovie from "./pages/admin/AddMovie";
+import SnackPage from "./pages/SnackPage";
 
 function HomePage() {
   return (
@@ -60,15 +61,14 @@ export default function App() {
                 <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
                 <Route path="/cancel-booking" element={<CancelBookingPage />} />
                 <Route path="/events" element={<EventPage />} />
-
-                <Route path="/profil" element={<ProfilePage />} />
-                <Route path="/om-oss" element={<AboutUs />}/>
-                <Route path="/kontakt" element={<ContactPage />} />
-                
+                <Route path="/events/:id" element={<EventDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/movies/new" element={<AddMovie />} />
+                <Route path="/profil" element={<ProfilePage />} />
+                <Route path="/om-oss" element={<AboutUs />}/>
+                <Route path="/kontakt" element={<ContactPage />} />
+                <Route path="/snacks" element={<SnackPage />} />
               </Routes>
             </main>
 

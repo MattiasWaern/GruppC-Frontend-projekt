@@ -35,7 +35,9 @@ export default function EventPage() {
                 setError("Det gick inte att ladda eventen.");
 
             } finally {
-                setLoading(false);
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
             }
         }
 
@@ -51,6 +53,23 @@ export default function EventPage() {
 
         return `${year}-${month}-${day}`;
     }
+
+    const today = new Date();
+    const todayDate = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0")
+    ].join("-");
+
+    const upcomingEvents = events
+        .filter((event) => {
+            const eventDate = formatDate(event.date);
+
+            return eventDate >= todayDate;
+        })
+        .sort((a, b) =>
+            formatDate(a.date).localeCompare(formatDate(b.date))
+        );
 
     return (
         <main className="min-h-screen px-4 py-8 text-white sm:px-8">
@@ -88,7 +107,7 @@ export default function EventPage() {
                 {!loading && !error && (
                     <section className="space-y-6">
 
-                        {events.map((event) => (
+                        {upcomingEvents.map((event) => (
 
                             <article
                                 key={event.eventId}
@@ -193,7 +212,7 @@ export default function EventPage() {
                         ))}
 
                         {/* Om inga events finns */}
-                        {events.length === 0 && (
+                        {upcomingEvents.length === 0 && (
                             <p className="py-10 text-center text-[#e4e0d7]">
                                 Det finns inga kommande event just nu.
                             </p>
