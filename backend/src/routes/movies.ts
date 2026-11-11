@@ -113,6 +113,11 @@ router.post("/", requireAdmin, async (req, res) => {
     background_color,
     age_limit,
     genreIds,
+    director,
+    actors,
+    original_title,
+    original_language,
+    premiere,
   } = req.body;
 
   // Kontrollera obligatoriska uppgifter
@@ -140,6 +145,27 @@ router.post("/", requireAdmin, async (req, res) => {
     return;
   }
 
+  const optionalTextFields = [
+    director,
+    actors,
+    original_title,
+    original_language,
+  ];
+
+  if (
+    optionalTextFields.some(
+      (field) =>
+        field !== undefined &&
+        field !== null &&
+        typeof field !== "string"
+    )
+  ) {
+    res.status(400).json({
+      error: "Filmuppgifterna måste vara text eller null.",
+    });
+    return;
+  }
+
   // Kontrollera valfria URL-fält
   if (
     (trailer !== undefined &&
@@ -151,6 +177,19 @@ router.post("/", requireAdmin, async (req, res) => {
   ) {
     res.status(400).json({
       error: "Trailer och poster måste vara text eller null.",
+    });
+    return;
+  }
+
+  if (
+    premiere !== undefined &&
+    premiere !== null &&
+    premiere !== "" &&
+    (typeof premiere !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(premiere))
+  ) {
+    res.status(400).json({
+      error: "Premiärdatum måste anges i formatet ÅÅÅÅ-MM-DD",
     });
     return;
   }
@@ -191,9 +230,14 @@ router.post("/", requireAdmin, async (req, res) => {
           trailer,
           poster,
           background_color,
-          age_limit
+          age_limit,
+          director,
+          actors,
+          original_title,
+          originaal_language,
+          premiere
         )
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         title.trim(),
         description.trim(),
@@ -202,6 +246,11 @@ router.post("/", requireAdmin, async (req, res) => {
         poster || null,
         background_color.trim(),
         age_limit,
+        director?.trim() || null,
+        actors?.trim() || null,
+        original_title?.trim() || null,
+        original_language?.trim() || null,
+        premiere || null,
       ]
     );
 
