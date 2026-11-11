@@ -14,7 +14,7 @@ const footerGroups = [
     links: [
       { label: 'Biljetter', href: '#biljetter' },
       { label: 'Salonger', href: '#Salonger' },
-      { label: 'Mat & dryck', href: '#mat-dryck' },
+      { label: 'Mat & dryck', href: '/snacks' },
       { label: 'Tillgänglighet', href: '#tillganglighet' },
     ],
   },
