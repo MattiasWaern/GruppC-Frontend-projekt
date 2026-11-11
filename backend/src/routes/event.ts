@@ -13,6 +13,8 @@ interface EventRow extends RowDataPacket {
     description: string | null;
     poster: string | null;
     categoryId: number;
+    categoryName: string | null;
+    extraInfo: string | null;
 }
 
 interface EventInput {
@@ -21,6 +23,7 @@ interface EventInput {
     description: string | null;
     poster: string | null;
     categoryId: number;
+    extraInfo: string | null;
 }
 
 // Kontrollerar att värdet är ett objekt
@@ -36,7 +39,7 @@ function validateEventInput(value: unknown): EventInput | null {
         return null;
     }
 
-    const { title, date, description, poster, categoryId } = value;
+    const { title, date, description, poster, categoryId, extraInfo } = value;
 
     if (typeof title !== 'string' || title.trim() === '') {
         return null;
@@ -117,7 +120,8 @@ function validateEventInput(value: unknown): EventInput | null {
         date: `${datePart} ${timePart}`,
         description: typeof description === 'string' ? description : null,
         poster: typeof poster === 'string' ? poster : null,
-        categoryId
+        categoryId,
+        extraInfo: typeof extraInfo === 'string' ? extraInfo : null,
     };
 }
 
@@ -125,8 +129,18 @@ function validateEventInput(value: unknown): EventInput | null {
 router.get('/', async (_req: Request, res: Response): Promise<void> => {
     try {
         const [rows] = await db.query<EventRow[]>(
-            `SELECT eventId, title, date, description, poster, categoryId
-             FROM event`
+            `SELECT
+                e.eventId,
+                e.title,
+                e.date,
+                e.description,
+                e.poster,
+                e.categoryId,
+                e.extraInfo,
+                ec.name AS categoryName
+             FROM event e
+             LEFT JOIN eventcategory ec
+                ON e.categoryId = ec.categoryId`
         );
 
         res.json(rows);
@@ -152,9 +166,19 @@ router.get(
 
         try {
             const [rows] = await db.query<EventRow[]>(
-                `SELECT eventId, title, date, description, poster, categoryId
-                 FROM event
-                 WHERE eventId = ?`,
+                `SELECT
+                    e.eventId,
+                    e.title,
+                    e.date,
+                    e.description,
+                    e.poster,
+                    e.categoryId,
+                    e.extraInfo,
+                    ec.name AS categoryName
+                 FROM event e
+                 LEFT JOIN eventcategory ec
+                    ON e.categoryId = ec.categoryId
+                 WHERE e.eventId = ?`,
                 [eventId]
             );
 
@@ -199,7 +223,8 @@ router.post(
                     event.date,
                     event.description,
                     event.poster,
-                    event.categoryId
+                    event.categoryId,
+                    event.extraInfo
                 ]
             );
 
@@ -248,6 +273,7 @@ router.put(
                     event.description,
                     event.poster,
                     event.categoryId,
+                    event.extraInfo,
                     eventId
                 ]
             );

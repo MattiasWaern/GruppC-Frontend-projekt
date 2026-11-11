@@ -66,7 +66,7 @@ export default function ContactPage() {
                 Filmvisarna HQ
               </h2>
               <p className="text-sm mb-4">
-                Har du frågor om biljetter, biografer eller ditt medlemskap?
+                Har du frågor om biljetter, tillgänglighet eller ditt medlemskap?
                 Fyll i formuläret eller hör av dig direkt till oss!
               </p>
               <img
