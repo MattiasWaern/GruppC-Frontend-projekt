@@ -16,11 +16,14 @@ import BookingPage from "./components/bookingSite";
 import CancelBookingPage from "./pages/CancelBookingPage";
 import ContactPage from "./pages/ContactPage";
 import { MoviesPage } from "./pages/MoviesPage";
+
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import AboutUs from './pages/AboutUs';
+
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AddMovie from "./pages/admin/AddMovie";
 
 function HomePage() {
   return (
@@ -57,12 +60,15 @@ export default function App() {
                 <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
                 <Route path="/cancel-booking" element={<CancelBookingPage />} />
                 <Route path="/events" element={<EventPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/admin" element={<AdminDashboard />} />
+
                 <Route path="/profil" element={<ProfilePage />} />
                 <Route path="/om-oss" element={<AboutUs />}/>
                 <Route path="/kontakt" element={<ContactPage />} />
+                
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/movies/new" element={<AddMovie />} />
               </Routes>
             </main>
 
