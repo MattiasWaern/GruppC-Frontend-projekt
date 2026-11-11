@@ -17,10 +17,12 @@ import BookingPage from "./components/bookingSite";
 import CancelBookingPage from "./pages/CancelBookingPage";
 import ContactPage from "./pages/ContactPage";
 import { MoviesPage } from "./pages/MoviesPage";
+
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import AboutUs from './pages/AboutUs';
+
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import SnackPage from "./pages/SnackPage";
 

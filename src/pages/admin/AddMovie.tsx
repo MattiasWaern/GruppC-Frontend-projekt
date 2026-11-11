@@ -1,5 +1,5 @@
-
 import { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 interface Genre {
   genreId: number;
@@ -16,9 +16,11 @@ interface MovieForm {
   age_limit: string;
 }
 
-const API_URL = "http://localhost:3000/api";
+//const API_URL = "http://localhost:3000/api";//
+const API_URL = "/api";
 
 const AddMovie = () => {
+  const { token, isAdmin } = useAuth();
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
@@ -80,11 +82,14 @@ const AddMovie = () => {
     e.preventDefault();
     setMessage("");
 
-    const token = localStorage.getItem("token");
-
     if (!token) {
       setMessage("Du måste vara inloggad som administratör.");
       return;
+    }
+
+    if (!isAdmin) {
+    setMessage("Du saknar behörighet att lägga till filmer.");
+    return;
     }
 
     setLoading(true);
