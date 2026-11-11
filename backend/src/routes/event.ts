@@ -14,6 +14,7 @@ interface EventRow extends RowDataPacket {
     poster: string | null;
     categoryId: number;
     categoryName: string | null;
+    extraInfo: string | null;
 }
 
 interface EventInput {
@@ -22,6 +23,7 @@ interface EventInput {
     description: string | null;
     poster: string | null;
     categoryId: number;
+    extraInfo: string | null;
 }
 
 // Kontrollerar att värdet är ett objekt
@@ -37,7 +39,7 @@ function validateEventInput(value: unknown): EventInput | null {
         return null;
     }
 
-    const { title, date, description, poster, categoryId } = value;
+    const { title, date, description, poster, categoryId, extraInfo } = value;
 
     if (typeof title !== 'string' || title.trim() === '') {
         return null;
@@ -119,6 +121,7 @@ function validateEventInput(value: unknown): EventInput | null {
         description: typeof description === 'string' ? description : null,
         poster: typeof poster === 'string' ? poster : null,
         categoryId,
+        extraInfo: typeof extraInfo === 'string' ? extraInfo : null,
     };
 }
 
@@ -133,6 +136,7 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
                 e.description,
                 e.poster,
                 e.categoryId,
+                e.extraInfo,
                 ec.name AS categoryName
              FROM event e
              LEFT JOIN eventcategory ec
@@ -169,6 +173,7 @@ router.get(
                     e.description,
                     e.poster,
                     e.categoryId,
+                    e.extraInfo,
                     ec.name AS categoryName
                  FROM event e
                  LEFT JOIN eventcategory ec
@@ -218,7 +223,8 @@ router.post(
                     event.date,
                     event.description,
                     event.poster,
-                    event.categoryId
+                    event.categoryId,
+                    event.extraInfo
                 ]
             );
 
@@ -267,6 +273,7 @@ router.put(
                     event.description,
                     event.poster,
                     event.categoryId,
+                    event.extraInfo,
                     eventId
                 ]
             );
