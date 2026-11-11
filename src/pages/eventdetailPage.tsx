@@ -46,6 +46,7 @@ export function EventDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [viewingError, setViewingError] = useState("");
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -147,10 +148,10 @@ export function EventDetailPage() {
         <div className="overflow-hidden rounded-xl border border-[#6c5a31]/50 bg-[#1b1b1b]">
 
          {/* Poster */}
-<div className="relative bg-[#252525] px-6 pt-6 pb-6">
-  <div className="overflow-hidden rounded-xl">
-    {event.poster ? (
-      <img
+       <div className="relative bg-[#252525] px-6 pt-6 pb-6">
+        <div className="overflow-hidden rounded-xl">
+          {event.poster ? (
+          <img
         src={event.poster}
         alt={`Bild för ${event.title}`}
         className="mx-auto block max-h-[550px] w-full rounded-xl object-cover"
@@ -221,10 +222,76 @@ export function EventDetailPage() {
                 Om evenemanget
               </h2>
 
-              <p className="whitespace-pre-line font-sans text-base leading-8 text-[#c4b99e]">
-                {event.description ||
-                  "Ingen beskrivning finns tillgänglig för detta evenemang."}
-              </p>
+                {event.extraInfo && (
+                <button
+                    type="button"
+                    onClick={() => setShowMore(!showMore)}
+                    aria-expanded={showMore}
+                    className="w-full cursor-pointer rounded-[18px] border border-[#76663d] bg-[#1b1b1b] p-5 text-left transition duration-300 hover:border-[#d7bd72]"
+                >
+                    
+                    <div className="mx-auto max-w-2xl font-sans text-base leading-6 text-[#c4b99e]">
+                    {(showMore
+                        ? event.extraInfo.split("\n")
+                        : event.extraInfo.split("\n").slice(0, 4)
+                    ).map((line, index, lines) => {
+                        if (line.trim() === "[left]") {
+                        return null;
+                        }
+
+                        const leftAligned = lines
+                        .slice(0, index)
+                        .some((previousLine) => previousLine.trim() === "[left]");
+
+                        const alignment = leftAligned ? "text-left" : "text-center";
+
+                        if (line.startsWith("### ")) {
+                        return (
+                            <h4
+                            key={index}
+                            className={`mb-1 mt-2 font-serif text-lg text-[#d7bd72] ${alignment}`}
+                            >
+                            {line.slice(4)}
+                            </h4>
+                        );
+                        }
+
+                        if (line.startsWith("## ")) {
+                        return (
+                            <h3
+                            key={index}
+                            className={`mb-1 mt-3 font-serif text-xl text-[#d7bd72] ${alignment}`}
+                            >
+                            {line.slice(3)}
+                            </h3>
+                        );
+                        }
+
+                        if (line.startsWith("# ")) {
+                        return (
+                            <h2
+                            key={index}
+                            className={`mb-2 mt-4 font-serif text-2xl text-[#d7bd72] ${alignment}`}
+                            >
+                            {line.slice(2)}
+                            </h2>
+                        );
+                        }
+
+                        return (
+                        <p key={index} className={`leading-6 ${alignment}`}>
+                            {line || "\u00A0"}
+                        </p>
+                        );
+                    })}
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-center gap-2 font-serif text-sm text-[#d7bd72]">
+                    <span>{showMore ? "Visa mindre" : "Läs mer"}</span>
+                    <span>{showMore ? "↑" : "↓"}</span>
+                    </div>
+                </button>
+                )}
             </section>
 
             {/* Bokningsbara visningar */}
@@ -256,6 +323,9 @@ export function EventDetailPage() {
                         <p className="mt-1 font-sans text-sm text-[#b9a980]">
                           Starttid: {viewing.viewing_start_time.slice(0, 5)}
                         </p>
+
+                        <p className="mt-1 font-sans text-sm text-[#b9a980]">
+                           {event.title} </p>
                       </div>
 
                       <Link

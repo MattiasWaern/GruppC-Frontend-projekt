@@ -6,4 +6,5 @@ export interface Event {
     poster: string | null;
     categoryId: number;
     categoryName: string;
+    extraInfo: string | null;
 }
