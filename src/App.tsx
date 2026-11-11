@@ -21,6 +21,7 @@ import { RegisterPage } from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import AboutUs from './pages/AboutUs';
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import SnackPage from "./pages/SnackPage";
 
 function HomePage() {
   return (
@@ -63,6 +64,7 @@ export default function App() {
                 <Route path="/profil" element={<ProfilePage />} />
                 <Route path="/om-oss" element={<AboutUs />}/>
                 <Route path="/kontakt" element={<ContactPage />} />
+                <Route path="/snacks" element={<SnackPage />} />
               </Routes>
             </main>
 
