@@ -8,4 +8,10 @@ export interface Movie {
   background_color: string;
   age_limit: number;
   genres: string[];
+
+  director: string | null;
+  actors: string | null;
+  original_title: string | null;
+  original_language: string | null;
+  premiere: string | null;
 }

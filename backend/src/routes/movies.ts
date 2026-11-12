@@ -120,6 +120,8 @@ router.post("/", requireAdmin, async (req, res) => {
     premiere,
   } = req.body;
 
+
+  
   // Kontrollera obligatoriska uppgifter
   if (
     typeof title !== "string" ||
@@ -234,7 +236,7 @@ router.post("/", requireAdmin, async (req, res) => {
           director,
           actors,
           original_title,
-          originaal_language,
+          original_language,
           premiere
         )
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
