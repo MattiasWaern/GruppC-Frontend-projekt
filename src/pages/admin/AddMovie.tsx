@@ -14,6 +14,11 @@ interface MovieForm {
   poster: string;
   background_color: string;
   age_limit: string;
+  director: string;
+  actors: string;
+  original_title: string;
+  original_language: string;
+  premiere: string;
 }
 
 //const API_URL = "http://localhost:3000/api";//
@@ -34,6 +39,11 @@ const AddMovie = () => {
     poster: "",
     background_color: "#1d1d1d",
     age_limit: "0",
+    director: "",
+    actors: "",
+    original_title: "",
+    original_language: "",
+    premiere: "",
   });
 
   useEffect(() => {
@@ -127,6 +137,11 @@ const AddMovie = () => {
         poster: "",
         background_color: "#1d1d1d",
         age_limit: "0",
+        director: "",
+        actors: "",
+        original_title: "",
+        original_language: "",
+        premiere: "",
       });
 
       setSelectedGenres([]);
@@ -172,6 +187,60 @@ const AddMovie = () => {
               onChange={handleChange}
               required
               rows={4}
+              className="w-full rounded-lg border border-gray-700 bg-[#292929] p-3 text-white"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block">Regi</label>
+            <input
+              name="director"
+              value={form.director}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-700 bg-[#292929] p-3 text-white"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block">Skådespelare</label>
+            <textarea
+              name="actors"
+              value={form.actors}
+              onChange={handleChange}
+              rows={3}
+              placeholder="Exemmpel: Johnny Depp, Helena Bonham Carter, Cillian Murphy"
+              className="w-full rounded-lg border border-gray-700 bg-[#292929] p-3 text-white"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block">Orginaltitel</label>
+            <input 
+              name="original_title"
+              value={form.original_title}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-700 bg-[#292929] p-3 text-white"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block">Orginalspråk</label>
+            <input
+              name="original_language"
+              value={form.original_language}
+              onChange={handleChange}
+              placeholder="Exempel: Engelska"
+              className="w-full rounded-lg border border-gray-700 bg-[#292929] p-3 text-white"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block">Premiär</label>
+            <input
+              type="date"
+              name="premiere"
+              value={form.premiere}
+              onChange={handleChange}
               className="w-full rounded-lg border border-gray-700 bg-[#292929] p-3 text-white"
             />
           </div>
