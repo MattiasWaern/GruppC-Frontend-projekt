@@ -31,6 +31,7 @@ export default function MovieDetailsPage() {
   );
   const [viewingLoading, setViewingLoading] = useState(true);
   const [viewingError, setViewingError] = useState("");
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -265,31 +266,81 @@ function formatDate(dateString: string) {
   </div>
 </section>
 
-        {/* Filmbeskrivning */}
-      <section className="mx-auto mt-8 max-w-3xl rounded-xl border border-[#6c5a31]/30 bg-black/25 p-6 backdrop-blur-sm sm:p-8">
-        <h2 className="mb-4 text-2xl text-[#f1e3be]">
-          Om filmen
-        </h2>
+       {/* Filmbeskrivning */}
+<section className="mx-auto mt-8 max-w-3xl rounded-xl border border-[#6c5a31]/30 bg-black/25 p-6 backdrop-blur-sm sm:p-8">
 
-        <p className="whitespace-pre-line font-sans text-sm leading-7 text-[#e4dfd3] sm:text-base">
-          {movie.description}
+  <h2 className="mb-4 text-2xl text-[#f1e3be]">
+    Om filmen
+  </h2>
+
+  {/* Beskrivning - alltid synlig */}
+  <p className={`whitespace-pre-line font-sans text-sm leading-7 text-[#f1e3be] sm:text-base ${
+    showMore ? "" : "line-clamp-3"
+  }`}>
+    {movie.description}
+  </p>
+
+  {/* Extra information - visas efter klick */}
+  {showMore && (
+    <div className="mt-8 space-y-5 font-sans text-sm text-[#e4dfd3] sm:text-base">
+
+      <div>
+        <h3 className="mb-1 text-[#e4ce83]">REGI</h3>
+        <p>{movie.director || "Ej angivet"}</p>
+      </div>
+
+      <div>
+        <h3 className="mb-1 text-[#e4ce83]">SKÅDESPELARE</h3>
+        <p>{movie.actors || "Ej angivet"}</p>
+      </div>
+
+      <div>
+        <h3 className="mb-1 ftext-[#e4ce83]">ORIGINALTITEL</h3>
+        <p>{movie.original_title || "Ej angivet"}</p>
+      </div>
+
+      <div>
+        <h3 className="mb-1 text-[#e4ce83]">SPRÅK</h3>
+        <p>{movie.original_language || "Ej angivet"}</p>
+      </div>
+
+      <div>
+        <h3 className="mb-1 text-[#e4ce83]">PREMIÄR</h3>
+        <p>
+          {movie.premiere
+            ? new Date(movie.premiere).toLocaleDateString("sv-SE")
+            : "Ej angivet"}
         </p>
-      </section>
+      </div>
+
+    </div>
+  )}
+
+  {/* Läs mer / Visa mindre */}
+  <button
+    type="button"
+    onClick={() => setShowMore(!showMore)}
+    className="mt-5 font-sans text-sm text-[#e4ce83] transition-colors hover:text-white"
+  >
+    {showMore ? "Visa mindre" : "Läs mer"}
+  </button> 
+
+</section>
 
         {/* Biljettpanel FÅR KOPPLA DETTA TILL RÄTT DATUM SENARE*/}
-        <section
-          id="biljetter"
-          className="mx-auto mt-14 w-full max-w-3xl rounded-2xl border border-[#6c5a31]/60 bg-[#191919]/95 p-5 font-sans text-[#e4ce83] shadow-2xl shadow-black/30 sm:p-8"
-        >
-          <h2 className="mb-4.5 text-base font-normal">Biljetter</h2>
+    <section
+      id="biljetter"
+      className="mx-auto mt-14 w-full max-w-3xl rounded-2xl border border-[#6c5a31]/60 bg-[#191919]/95 p-5 font-sans text-[#e4ce83] shadow-2xl shadow-black/30 sm:p-8"
+      >
+        <h2 className="mb-4.5 text-base font-normal">Biljetter</h2>
 
-{viewingLoading && <p className="text-[#e4ce83]">Laddar visningar...</p>}
-{viewingError && <p className="text-sm text-red-400">{viewingError}</p>}
+          {viewingLoading && <p className="text-[#e4ce83]">Laddar visningar...</p>}
+          {viewingError && <p className="text-sm text-red-400">{viewingError}</p>}
 
-{!viewingLoading && !viewingError && availableDates.length == 0 && (
- <p className="text-[#e4ce83]">Inga visningar tillgängliga för denna film.</p>
-)}    
-<div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
+          {!viewingLoading && !viewingError && availableDates.length == 0 && (
+      <p className="text-[#e4ce83]">Inga visningar tillgängliga för denna film.</p>
+        )}    
+  <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
   {availableDates.map((dateKey) => (
     <button
     type="button"
