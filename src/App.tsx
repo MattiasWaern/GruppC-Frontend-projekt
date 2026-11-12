@@ -21,6 +21,12 @@ import { MoviesPage } from "./pages/MoviesPage";
 import AboutUs from './pages/AboutUs';
 
 import SnackPage from "./pages/SnackPage";
+import Terms from "./pages/footer/Terms";
+import Integrity from "./pages/footer/Integrity";
+import Cookies from "./pages/footer/Cookies";
+import Tickets from "./pages/footer/Tickets";
+import Theaters from "./pages/footer/Theaters";
+import Accessibility from "./pages/footer/Accessibility";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import { LoginPage } from "./pages/LoginPage";
@@ -72,6 +78,12 @@ export default function App() {
                 <Route path="/om-oss" element={<AboutUs />}/>
                 <Route path="/kontakt" element={<ContactPage />} />
                 <Route path="/snacks" element={<SnackPage />} />
+                <Route path="/villkor" element={<Terms />} />
+                <Route path="/integritet" element={<Integrity />} />
+                <Route path="/cookies" element={<Cookies />} />
+                <Route path="/biljetter" element={<Tickets />} />
+                <Route path="/salonger" element={<Theaters />} />
+                <Route path="/tillganglighet" element={<Accessibility />} />
               </Routes>
             </main>
 
