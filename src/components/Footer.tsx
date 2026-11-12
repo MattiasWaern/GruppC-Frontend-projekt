@@ -2,20 +2,20 @@ const footerGroups = [
   {
     title: 'EVENT',
     links: [
-      { label: 'Boka', href: '#boka' },
-      { label: 'Event', href: '#event' },
-      { label: 'Om oss', href: '#om-oss' },
-      { label: 'Konto', href: '#konto' },
+      { label: 'Boka', href: '/movies' },
+      { label: 'Event', href: '/events' },
+      { label: 'Om oss', href: '/om-oss' },
+      { label: 'Konto', href: '/profil' },
 
     ],
   },
   {
     title: 'INFORMATION',
     links: [
-      { label: 'Biljetter', href: '#biljetter' },
-      { label: 'Salonger', href: '#Salonger' },
+      { label: 'Biljetter', href: '/biljetter' },
+      { label: 'Salonger', href: '/salonger' },
       { label: 'Mat & dryck', href: '/snacks' },
-      { label: 'Tillgänglighet', href: '#tillganglighet' },
+      { label: 'Tillgänglighet', href: '/tillganglighet' },
     ],
   },
   {
@@ -23,8 +23,8 @@ const footerGroups = [
     links: [
       { label: 'Hjälpcenter', href: '#hjalpcenter' },
       { label: 'Kontakta oss', href: '/kontakt' },
-      { label: 'Villkor', href: '#villkor' },
-      { label: 'Integritet', href: '#integritet' },
+      { label: 'Villkor', href: '/villkor' },
+      { label: 'Integritet', href: '/integritet' },
     ],
   },
 ];
@@ -68,9 +68,9 @@ export default function Footer() {
        <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 px-6 py-4 text-[10px] text-white/40 sm:flex-row">
         <p>© 2026 Filmvisarna. Alla rättigheter reserverade.</p>
         <div className="flex flex-wrap justify-center gap-4">
-          <a href="#villkor" className="hover:text-[#e5ca7a]">Villkor</a>
-          <a href="#integritet" className="hover:text-[#e5ca7a]">Integritet</a>
-          <a href="#cookies" className="hover:text-[#e5ca7a]">Cookies</a>
+          <a href="/villkor" className="hover:text-[#e5ca7a]">Villkor</a>
+          <a href="/integritet" className="hover:text-[#e5ca7a]">Integritet</a>
+          <a href="/cookies" className="hover:text-[#e5ca7a]">Cookies</a>
         </div>
       </div>
     </footer>
