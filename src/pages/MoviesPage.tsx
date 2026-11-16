@@ -138,9 +138,9 @@ return (
         <div className="flex flex-wrap gap-3">
           {[
             { value: "all", label: "Alla filmer" },
-            { value: "7", label: "Upp till 7 år" },
-            { value: "11", label: "Upp till 11 år" },
-            { value: "15", label: "Upp till 15 år" },
+            { value: "7", label: "Från 7 år" },
+            { value: "11", label: "Från 11 år" },
+            { value: "15", label: "Från 15 år" },
           ].map((option) => (
             <button
               key={option.value}
