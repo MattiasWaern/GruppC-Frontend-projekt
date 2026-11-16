@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import type { Movie } from "../types/movie";
+import type { Viewing } from "../types/viewing";
 
 export function MoviesPage() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -10,6 +11,9 @@ export function MoviesPage() {
   const [ageFilter, setAgeFilter] = useState("all");
   const [searchParams] = useSearchParams();
   const search = searchParams.get("search")?.trim() ?? "";
+  const [viewings, setViewings] = useState<Viewing[]>([]);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [viewingError, setViewingError] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -55,6 +59,48 @@ export function MoviesPage() {
     return () => controller.abort();
   }, []);
 
+useEffect(() => {
+  async function fetchViewings() {
+    try {
+      const response = await fetch("/api/viewings");
+
+      if (!response.ok) {
+        throw new Error("Kunde inte hämta visningarna.");
+      }
+
+      const data: Viewing[] = await response.json();
+      const now = new Date();
+
+      // Behåll endast kommande visningar
+      const futureViewings = data.filter((viewing) => {
+        const viewingDateTime = new Date(
+          `${viewing.viewing_date.slice(0, 10)}T${viewing.viewing_start_time.slice(0, 8)}`
+        );
+
+        return viewingDateTime > now;
+      });
+
+      setViewings(futureViewings);
+    } catch (error) {
+      console.error("Fel vid hämtning av visningar:", error);
+      setViewingError("Det gick inte att hämta visningarna.");
+    }
+  }
+
+  fetchViewings();
+}, []);
+  
+  const movieIdsWithViewingsOnDate = useMemo(() => {
+    return new Set(
+      viewings.filter(
+        (viewing) =>
+          viewing.viewing_date.slice(0, 10) === selectedDate &&
+          viewing.movieId !== null
+      )
+        .map((viewing) => viewing.movieId as number)
+    );
+  }, [viewings, selectedDate]);
+
 const filteredMovies = useMemo(() => {
   const query = search.toLocaleLowerCase("sv-SE");
 
@@ -82,10 +128,15 @@ const filteredMovies = useMemo(() => {
       (Number.isFinite(ageLimit) &&
         movie.age_limit != null &&
         ageLimit <= Number(ageFilter));
+    
+    const matchesDate =
+      !selectedDate ||
+      movieIdsWithViewingsOnDate.has(movie.movieId);
+    
 
-    return matchesSearch && matchesAge;
+    return matchesSearch && matchesAge && matchesDate;
   });
-}, [movies, search, ageFilter]);
+}, [movies, search, ageFilter, selectedDate, movieIdsWithViewingsOnDate]);
 
   if (loading) {
     return (
@@ -177,6 +228,32 @@ return (
               }`
             : "Utforska vårt filmutbud och hitta din nästa bioupplevelse."}
         </p>
+        <div className="mt-6 flex flex-wrap items-center gap-3 font-sans">
+          <label htmlFor="viewing-date" className="tex-sm text-[#e4ce83]">
+            Visar filmer som går:
+          </label>
+
+          <input
+            id="viewing-date"
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="rounded.md border border-[#806b36] bg-[#292929] px-3 py-2 text-white"
+          />
+
+          {selectedDate && (
+            <button
+              type="button"
+              onClick={() => setSelectedDate("")}
+              className="text-sm text-[#d7b83e] underline"
+            >
+              Rensa datum
+            </button>
+          )}
+        </div>
+        {viewingError && [
+          <p role="alert" className="mt-3 text-sm text-red-400"></p>
+        ]}
       </header>
 
       {/* Tillbaka till alla filmer vid sökning */}
