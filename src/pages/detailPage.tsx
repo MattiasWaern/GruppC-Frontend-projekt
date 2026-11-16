@@ -295,7 +295,7 @@ function formatDate(dateString: string) {
       </div>
 
       <div>
-        <h3 className="mb-1 ftext-[#e4ce83]">ORIGINALTITEL</h3>
+        <h3 className="mb-1 text-[#e4ce83]">ORIGINALTITEL</h3>
         <p>{movie.original_title || "Ej angivet"}</p>
       </div>
 
