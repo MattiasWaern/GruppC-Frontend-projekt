@@ -8,12 +8,12 @@ export function MoviesPage() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [ageFilter, setAgeFilter] = useState("all");
   const [searchParams] = useSearchParams();
   const search = searchParams.get("search")?.trim() ?? "";
   const [viewings, setViewings] = useState<Viewing[]>([]);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [viewingError, setViewingError] = useState("");
+  const ageFilter = searchParams.get("age") ?? "all";
+  const selectedDate = searchParams.get("date") ?? "";
+
 
   useEffect(() => {
     const controller = new AbortController();
@@ -83,7 +83,6 @@ useEffect(() => {
       setViewings(futureViewings);
     } catch (error) {
       console.error("Fel vid hämtning av visningar:", error);
-      setViewingError("Det gick inte att hämta visningarna.");
     }
   }
 
@@ -161,99 +160,6 @@ return (
       {/* Sidhuvud */}
       <header className="mb-10 border-b border-[#6c5a31]/50 pb-8">
 
-
-      {/* Åldersfilter */}
-      <div className="mb-8 rounded-xl border border-[#6c5a31]/50 bg-[#1b1b1b] p-5 font-sans sm:p-6">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-medium text-[#f1e3be]">
-              Filtrera efter åldersgräns
-            </h2>
-
-            <p className="mt-1 text-sm text-[#aaa59b]">
-              Visa filmer som passar den valda åldern.
-            </p>
-          </div>
-
-          {ageFilter !== "all" && (
-            <button
-              type="button"
-              onClick={() => setAgeFilter("all")}
-              className="cursor-pointer text-sm text-[#d7b83e] hover:underline"
-            >
-              Rensa filter
-            </button>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          {[
-            { value: "all", label: "Alla filmer" },
-            { value: "7", label: "Från 7 år" },
-            { value: "11", label: "Från 11 år" },
-            { value: "15", label: "Från 15 år" },
-          ].map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setAgeFilter(option.value)}
-              aria-pressed={ageFilter === option.value}
-              className={`cursor-pointer rounded-lg border px-4 py-2.5 text-sm transition ${
-                ageFilter === option.value
-                  ? "border-[#d7b83e] bg-[#d7b83e] font-semibold text-[#181818]"
-                  : "border-[#6c5a31]/60 bg-[#292929] text-[#e4ce83] hover:border-[#d7b83e]"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-
-        <p className="mt-5 text-sm text-[#aaa59b]">
-          Visar {filteredMovies.length} av {movies.length} filmer
-        </p>
-      </div>
-        <h1 className="mb-3 text-4xl font-medium tracking-wide text-[#f1e3be] sm:text-5xl">
-          {search
-            ? `Sökresultat för "${search}"`
-            : "Upptäck filmer"}
-        </h1>
-
-        <p className="font-sans text-sm text-[#aaa59b] sm:text-base">
-          {search
-            ? `${filteredMovies.length} ${
-                filteredMovies.length === 1
-                  ? "film hittades"
-                  : "filmer hittades"
-              }`
-            : "Utforska vårt filmutbud och hitta din nästa bioupplevelse."}
-        </p>
-        <div className="mt-6 flex flex-wrap items-center gap-3 font-sans">
-          <label htmlFor="viewing-date" className="tex-sm text-[#e4ce83]">
-            Visar filmer som går:
-          </label>
-
-          <input
-            id="viewing-date"
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="rounded.md border border-[#806b36] bg-[#292929] px-3 py-2 text-white"
-          />
-
-          {selectedDate && (
-            <button
-              type="button"
-              onClick={() => setSelectedDate("")}
-              className="text-sm text-[#d7b83e] underline"
-            >
-              Rensa datum
-            </button>
-          )}
-        </div>
-        {viewingError && [
-          <p role="alert" className="mt-3 text-sm text-red-400"></p>
-        ]}
       </header>
 
       {/* Tillbaka till alla filmer vid sökning */}
