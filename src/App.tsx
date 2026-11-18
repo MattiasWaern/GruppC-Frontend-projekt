@@ -33,6 +33,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import AddMovie from "./pages/admin/AddMovie";
+import AddEvent from "./pages/admin/AddEvent";
 
 function HomePage() {
   return (
@@ -84,6 +85,7 @@ export default function App() {
                 <Route path="/biljetter" element={<Tickets />} />
                 <Route path="/salonger" element={<Theaters />} />
                 <Route path="/tillganglighet" element={<Accessibility />} />
+                <Route path="/admin/events/new" element={<AddEvent />} />
               </Routes>
             </main>
 
