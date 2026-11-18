@@ -216,8 +216,8 @@ router.post(
         try {
             const [result] = await db.query<ResultSetHeader>(
                 `INSERT INTO event
-                 (title, date, description, poster, categoryId)
-                 VALUES (?, ?, ?, ?, ?)`,
+                (title, date, description, poster, categoryId, extraInfo)
+                VALUES (?, ?, ?, ?, ?, ?)`,
                 [
                     event.title,
                     event.date,
@@ -265,8 +265,8 @@ router.put(
         try {
             const [result] = await db.query<ResultSetHeader>(
                 `UPDATE event
-                 SET title = ?, date = ?, description = ?, poster = ?, categoryId = ?
-                 WHERE eventId = ?`,
+                SET title = ?, date = ?, description = ?, poster = ?, categoryId = ?, extraInfo = ?
+                WHERE eventId = ?`,
                 [
                     event.title,
                     event.date,
