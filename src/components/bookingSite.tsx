@@ -46,7 +46,7 @@ const prices: Record<keyof TicketCounts, number> = {
   senior: 120,
 };
 
-const validAgeLimits = [0, 7, 11, 15];
+const validAgeLimits = [0, 7, 11, 13, 15];
 
 const sek = new Intl.NumberFormat("sv-SE", {
   style: "currency",
@@ -939,7 +939,7 @@ const BookingPage: React.FC = () => {
             type="button"
             disabled={!canContinue || bookingLoading}
             onClick={handleBooking}
-            className="w-full rounded-md bg-[#dfbd35] px-7 py-3 font-serif text-base text-black transition hover:bg-[#edd05b] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+            className="w-full rounded-md bg-[#dfbd35] px-7 py-3 font-serif text-base text-black transition hover:bg-[#edd05b] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto cursor-pointer"
           >
             {bookingLoading ? "Skapar bokning..." : "Bekräfta bokning"}
           </button>
