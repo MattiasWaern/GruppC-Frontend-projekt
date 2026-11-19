@@ -136,7 +136,7 @@ export async function sendBookingConfirmationEmail({
             Tack för din bokning!
           </h1>
 
-          <p style="color:#cccccc;font-size:15px;line-height:1.6;">
+          <p style="color:#cccccc;font-size:15px;line-height:1.9;">
             Din bioupplevelse är nu bokad.
           </p>
 
@@ -160,32 +160,44 @@ export async function sendBookingConfirmationEmail({
                   Dina bokningsuppgifter
                 </h2>
 
-                <p style="color:#eeeeee;font-size:14px;line-height:1.7;">
-                  <span style="color:#d4b46a;">Film:</span>
+                <p style="color:#eeeeee;font-size:14px;line-height:1.9;margin:12px 0;">
+                  <span style="color:#d4b46a;">
+                  Film:
+                  </span>
                   ${escapeHtml(info.movieTitle)}
                 </p>
 
-                <p style="color:#eeeeee;font-size:14px;line-height:1.7;">
-                  <span style="color:#d4b46a;">Dag:</span>
+                <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
+                  <span style="color:#d4b46a;">
+                  Dag:
+                  </span>
                  ${escapeHtml(formattedDate)}
                 </p>
 
-                <p style="color:#eeeeee;font-size:14px;line-height:1.7;">
-                  <span style="color:#d4b46a;">Tid:</span>
+                <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
+                  <span style="color:#d4b46a;">
+                  Tid:
+                  </span>
                   ${escapeHtml(info.viewingStartTime)}
                 </p>
 
-                <p style="color:#eeeeee;font-size:14px;line-height:1.7;">
-                  <span style="color:#d4b46a;">Salong:</span>
+                <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
+                  <span style="color:#d4b46a;">
+                  Salong:
+                  </span>
                   ${escapeHtml(info.theaterName)}
                 </p>
 
-                <p style="color:#eeeeee;font-size:14px;line-height:1.7;">
-                  <span style="color:#d4b46a;">Platser:</span>
+                <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
+                  <span style="color:#d4b46a;">
+                  Platser:
+                  </span>
                   ${info.seatInfo.map(escapeHtml).join(", ")}
                 </p>
-                <p style="color:#eeeeee;font-size:14px;line-height:1.7;">
-  <span style="color:#d4b46a;">Biljetter:</span><br>
+                <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
+                  <span style="color:#d4b46a;">
+                  Biljetter:
+                </span><br>
   ${ticketInfo.map(escapeHtml).join("<br>")}
 </p>
               </td>
@@ -200,7 +212,7 @@ export async function sendBookingConfirmationEmail({
             Varmt välkommen!
           </h2>
 
-          <p style="color:#cccccc;font-size:14px;line-height:1.7;">
+          <p style="color:#cccccc;font-size:14px;line-height:1.9;">
             Vi hoppas att du får en fantastisk bioupplevelse!
           </p>
         </td>
@@ -215,10 +227,20 @@ export async function sendBookingConfirmationEmail({
             Kontakta biografen vid frågor eller om du vill avboka.
           </p>
 
-          <p style="color:#cccccc;font-size:13px;line-height:1.8;">
-            E-post: filmvisarnagruppc@gmail.com<br>
-            Telefon: 08-123 456 78
-          </p>
+          <p style="color:#cccccc;font-size:13px;line-height:2;margin:15px 0;">
+            E-post:
+          <a href="mailto:filmvisarnagruppc@gmail.com"
+            style="color:#7DCBFF !important;
+            -webkit-text-fill-color:#7DCBFF !important;
+            text-decoration:underline;">
+          <span style="color:#7DCBFF !important;
+                 -webkit-text-fill-color:#7DCBFF !important;">
+            filmvisarnagruppc@gmail.com
+          </span>
+        </a>
+        <br>
+          Telefon: 08-123 456 78
+        </p>
 
           <p style="color:#d4b46a;font-size:13px;margin-top:18px;">
             Supportens öppettider
