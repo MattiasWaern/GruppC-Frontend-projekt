@@ -1,7 +1,5 @@
-
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import type { Event } from "../../types/event";
 import { useAuth } from "../../context/AuthContext";
 
 interface EventCategory {
