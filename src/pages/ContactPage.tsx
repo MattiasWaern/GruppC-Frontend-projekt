@@ -42,16 +42,15 @@ export default function ContactPage() {
     }
   };
 
-  return (
-    // Returnerar JSX för kontaktformuläret och kontaktinformationen
-    <section className="max-w-4xl mx-auto px-4 py-12 text-[#dedede]">
-      <h1 className="text-3xl font-bold text-[#e4ce83] mb-6 text-center">
+   return ( // Returnerar JSX för kontaktformuläret och kontaktinformationen
+   <section className="mx-auto w-full max-w-7xl py-4 text-[#dedede] md:py-6">
+      <h1 className="mb-5 text-center text-3xl font-bold text-[#e4ce83] md:mb-10 md:text-4xl">
         Kontakta oss
       </h1>
 
-      {submitted ? (
-        <section className="bg-[#2b2b2b] border border-[#e4ce83] p-6 rounded-md text-center max-w-lg mx-auto">
-          <h2 className="text-xl font-semibold text-[#e4ce83] mb-2">
+      {submitted ? ( // Om formuläret har skickats in, visa ett tackmeddelande
+        <section className="mx-auto max-w-lg rounded-md border border-[#e4ce83] bg-[#2b2b2b] p-6 text-center">
+          <h2 className="mb-2 text-xl font-semibold text-[#e4ce83]">
             Tack för ditt meddelande!
           </h2>
           <p className="text-sm">
@@ -59,32 +58,35 @@ export default function ContactPage() {
           </p>
         </section>
       ) : (
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <section className="bg-[#2b2b2b] p-6 rounded-md flex flex-col justify-between">
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
+          <section className="flex flex-col gap-6 rounded-md bg-[#2b2b2b] p-6 md:p-8 lg:p-10">
             <header>
-              <h2 className="text-xl font-semibold text-[#e4ce83] mb-4">
+              <h2 className="mb-3 break-words text-2xl font-semibold text-[#e4ce83] md:text-3xl">
                 Filmvisarna HQ
               </h2>
-              <p className="text-sm mb-4">
-                Har du frågor om biljetter, tillgänglighet eller ditt medlemskap?
+              <p className="mb-3 text-base md:text-lg">
+                Har du frågor om biljetter, tillgänglighet eller ditt
+                medlemskap?
+              </p>
+              <p className="text-base md:text-lg">
                 Fyll i formuläret eller hör av dig direkt till oss!
               </p>
               <img
                 src="/images/FVKontaktIkon.png"
                 alt="Filmvisarna kontaktikon"
-                className="my-4 h-40 w-40 object-contain mx-auto"
+                className="mx-auto mt-4 h-32 w-auto object-contain md:h-40"
               />
-              {/* Liten kontaktikon under introtexten.*/}
+              {/* Bild */}
             </header>
 
-            <address className="not-italic space-y-3 text-sm">
+            <address className="space-y-4 text-base not-italic md:text-lg">
               <p>
                 <strong className="text-[#e4ce83]">E-post:</strong>{" "}
-                filmvisarnagruppc@gmail.com
+                <span className="break-all">filmvisarnagruppc@gmail.com</span>
               </p>
               <p>
-                <strong className="text-[#e4ce83]">Telefon:</strong> 08-123 456
-                78
+                <strong className="text-[#e4ce83]">Telefon:</strong>{" "}
+                <span className="whitespace-nowrap">08-123 456 78</span>
               </p>
               <p>
                 <strong className="text-[#e4ce83]">Öppettider support:</strong>
@@ -96,12 +98,12 @@ export default function ContactPage() {
 
           <form
             onSubmit={handleSubmit}
-            className="bg-[#2b2b2b] p-6 rounded-md space-y-4"
+            className="space-y-5 rounded-md bg-[#2b2b2b] p-6 md:p-8 lg:p-10"
           >
             <section>
               <label
                 htmlFor="name"
-                className="block text-xs text-[#e4ce83] mb-1 uppercase font-semibold"
+                className="mb-1 block text-sm font-semibold uppercase text-[#e4ce83]"
               >
                 Namn
               </label>
@@ -112,14 +114,14 @@ export default function ContactPage() {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full bg-[#181818] text-[#dedede] border border-[#3a3a3a] rounded p-2 focus:outline-none focus:border-[#e4ce83] text-sm"
+                className="w-full rounded border border-[#3a3a3a] bg-[#181818] p-2 text-base text-[#dedede] focus:border-[#e4ce83] focus:outline-none"
               />
             </section>
 
             <section>
               <label
                 htmlFor="email"
-                className="block text-xs text-[#e4ce83] mb-1 uppercase font-semibold"
+                className="mb-1 block text-sm font-semibold uppercase text-[#e4ce83]"
               >
                 E-postadress
               </label>
@@ -130,14 +132,14 @@ export default function ContactPage() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full bg-[#181818] text-[#dedede] border border-[#3a3a3a] rounded p-2 focus:outline-none focus:border-[#e4ce83] text-sm"
+                className="w-full rounded border border-[#3a3a3a] bg-[#181818] p-2 text-base text-[#dedede] focus:border-[#e4ce83] focus:outline-none"
               />
             </section>
 
             <section>
               <label
                 htmlFor="subject"
-                className="block text-xs text-[#e4ce83] mb-1 uppercase font-semibold"
+                className="mb-1 block text-sm font-semibold uppercase text-[#e4ce83]"
               >
                 Ämne
               </label>
@@ -148,31 +150,31 @@ export default function ContactPage() {
                 required
                 value={formData.subject}
                 onChange={handleChange}
-                className="w-full bg-[#181818] text-[#dedede] border border-[#3a3a3a] rounded p-2 focus:outline-none focus:border-[#e4ce83] text-sm"
+                className="w-full rounded border border-[#3a3a3a] bg-[#181818] p-2 text-base text-[#dedede] focus:border-[#e4ce83] focus:outline-none"
               />
             </section>
 
             <section>
               <label
                 htmlFor="message"
-                className="block text-xs text-[#e4ce83] mb-1 uppercase font-semibold"
+                className="mb-1 block text-sm font-semibold uppercase text-[#e4ce83]"
               >
                 Meddelande
               </label>
               <textarea
                 id="message"
                 name="message"
-                rows={4}
+                rows={5}
                 required
                 value={formData.message}
                 onChange={handleChange}
-                className="w-full bg-[#181818] text-[#dedede] border border-[#3a3a3a] rounded p-2 focus:outline-none focus:border-[#e4ce83] text-sm resize-none"
+                className="w-full resize-none rounded border border-[#3a3a3a] bg-[#181818] p-2 text-base text-[#dedede] focus:border-[#e4ce83] focus:outline-none"
               ></textarea>
             </section>
 
             <button
               type="submit"
-              className="w-full bg-[#d7b83e] hover:bg-[#e4ce83] text-[#181818] font-bold py-2 px-4 rounded transition-colors"
+              className="block w-full rounded bg-[#d7b83e] px-4 py-3 text-lg font-bold text-[#181818] transition-colors hover:bg-[#e4ce83]"
             >
               Skicka meddelande
             </button>
