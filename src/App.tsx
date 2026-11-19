@@ -34,6 +34,7 @@ import { RegisterPage } from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import AddMovie from "./pages/admin/AddMovie";
 import AddEvent from "./pages/admin/AddEvent";
+import AddViewing from "./pages/admin/AddViewing";
 
 function HomePage() {
   return (
@@ -66,26 +67,35 @@ export default function App() {
                 <Route path="/movies" element={<MoviesPage />} />
                 <Route path="/movies/:id" element={<MovieDetails />} />
                 <Route path="/bookings/:viewingId" element={<BookingPage />} />
+                // Route for booking confirmation with optional ID parameter
                 <Route path="/booking-confirmation" element={<BookingConfirmation />}/>
                 <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
                 <Route path="/cancel-booking" element={<CancelBookingPage />} />
+
                 <Route path="/events" element={<EventPage />} />
                 <Route path="/events/:id" element={<EventDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/movies/new" element={<AddMovie />} />
+                <Route path="/admin/viewings/new" element={<AddViewing />} />
+
                 <Route path="/profil" element={<ProfilePage />} />
                 <Route path="/om-oss" element={<AboutUs />}/>
                 <Route path="/kontakt" element={<ContactPage />} />
+
                 <Route path="/snacks" element={<SnackPage />} />
+
                 <Route path="/villkor" element={<Terms />} />
                 <Route path="/integritet" element={<Integrity />} />
                 <Route path="/cookies" element={<Cookies />} />
+
                 <Route path="/biljetter" element={<Tickets />} />
                 <Route path="/salonger" element={<Theaters />} />
+
                 <Route path="/tillganglighet" element={<Accessibility />} />
                 <Route path="/admin/events/new" element={<AddEvent />} />
+
               </Routes>
             </main>
 
