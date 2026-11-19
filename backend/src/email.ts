@@ -38,6 +38,9 @@ export async function sendBookingConfirmationEmail({
   to,
   bookingNumber,
 }: BookingEmail): Promise<void> {
+  // Testrad: syns i backendens terminal när den nya koden körs
+  console.log("EMAIL VERSION 2 körs");
+
   const host = process.env.SMTP_HOST?.trim();
   const port = Number(process.env.SMTP_PORT);
   const secureValue = process.env.SMTP_SECURE?.trim().toLowerCase();
@@ -107,7 +110,6 @@ export async function sendBookingConfirmationEmail({
   });
 
   // Hämtar loggan från projektets filer.
-  // email.ts ligger i backend/src/
   const logoPath = fileURLToPath(
     new URL("../../dist/images/Logo.png", import.meta.url),
   );
@@ -115,147 +117,167 @@ export async function sendBookingConfirmationEmail({
   await transporter.sendMail({
     from: process.env.SMTP_FROM?.trim() || user,
     to,
-    subject: "Bokningsbekräftelse",
+    subject: "Bokningsbekräftelse V2",
 
     // HTML-versionen av bokningsbekräftelsen
     html: `
-  <div style="background-color:#000000;width:100%;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;color:#eeeeee;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-    style="width:100%;background-color:#000000;border-collapse:collapse;">
-
+  <!-- Yttre bakgrund: mörkgrå yta som den svarta rutan ligger på -->
+  <div style="background-color:#2d2d2d;width:100%;margin:0;padding:30px 0;font-family:Arial,Helvetica,sans-serif;color:#eeeeee;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+      style="width:100%;border-collapse:collapse;">
       <tr>
-        <td style="text-align:center;padding:30px 20px;border-bottom:1px solid #806a3e;">
-          <img src="cid:filmvisarna-logo" alt="Filmvisarna" width="160"
-            style="display:block;width:160px;max-width:100%;height:auto;margin:0 auto;border:0;">
-        </td>
-      </tr>
+        <!-- align="center" centrerar den svarta rutan i mailet -->
+        <td align="center" style="padding:0 10px;">
 
-      <tr>
-        <td style="padding:30px 30px 10px;text-align:center;">
-          <h1 style="color:#d4b46a;font-size:25px;font-weight:normal;margin:0 0 15px;">
-            Tack för din bokning!
-          </h1>
+          <!-- Den svarta rutan, max 600 px bred -->
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
+            bgcolor="#000000"
+            style="width:100%;max-width:600px;background-color:#000000;border:1px solid #806a3e;border-radius:8px;border-collapse:separate;">
 
-          <p style="color:#cccccc;font-size:15px;line-height:1.9;">
-            Din bioupplevelse är nu bokad.
-          </p>
-
-          <p style="color:#d4b46a;font-size:16px;margin:20px 0 0;">
-            Bokningsnummer
-          </p>
-
-          <p style="color:#ffffff;font-size:22px;font-weight:bold;letter-spacing:2px;margin:8px 0 20px;">
-            ${escapeHtml(bookingNumber)}
-          </p>
-        </td>
-      </tr>
-
-      <tr>
-        <td style="padding:10px 30px 30px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-            style="background-color:#252525;border:1px solid #5e5033;border-radius:6px;">
             <tr>
-              <td style="padding:20px;">
-                <h2 style="color:#d4b46a;font-size:17px;font-weight:normal;margin:0 0 18px;">
-                  Dina bokningsuppgifter
-                </h2>
-
-                <p style="color:#eeeeee;font-size:14px;line-height:1.9;margin:12px 0;">
-                  <span style="color:#d4b46a;">
-                  Film:
-                  </span>
-                  ${escapeHtml(info.movieTitle)}
-                </p>
-
-                <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
-                  <span style="color:#d4b46a;">
-                  Dag:
-                  </span>
-                 ${escapeHtml(formattedDate)}
-                </p>
-
-                <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
-                  <span style="color:#d4b46a;">
-                  Tid:
-                  </span>
-                  ${escapeHtml(info.viewingStartTime)}
-                </p>
-
-                <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
-                  <span style="color:#d4b46a;">
-                  Salong:
-                  </span>
-                  ${escapeHtml(info.theaterName)}
-                </p>
-
-                <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
-                  <span style="color:#d4b46a;">
-                  Platser:
-                  </span>
-                  ${info.seatInfo.map(escapeHtml).join(", ")}
-                </p>
-                <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
-                  <span style="color:#d4b46a;">
-                  Biljetter:
-                </span><br>
-  ${ticketInfo.map(escapeHtml).join("<br>")}
-</p>
+              <td style="text-align:center;padding:30px 20px;border-bottom:1px solid #806a3e;">
+                <img src="cid:filmvisarna-logo" alt="Filmvisarna" width="160"
+                  style="display:block;width:160px;max-width:100%;height:auto;margin:0 auto;border:0;">
               </td>
             </tr>
+
+            <tr>
+              <td style="padding:30px 30px 10px;text-align:center;">
+                <h1 style="color:#d4b46a;font-size:25px;font-weight:normal;margin:0 0 15px;">
+                  Tack för din bokning!
+                </h1>
+
+                <p style="color:#cccccc;font-size:15px;line-height:1.9;">
+                  Din bioupplevelse är nu bokad.
+                </p>
+
+                <p style="color:#d4b46a;font-size:16px;margin:20px 0 0;">
+                  Bokningsnummer
+                </p>
+
+                <p style="color:#ffffff;font-size:22px;font-weight:bold;letter-spacing:2px;margin:8px 0 20px;">
+                  ${escapeHtml(bookingNumber)}
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:10px 30px 30px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                  style="background-color:#252525;border:1px solid #5e5033;border-radius:6px;">
+                  <tr>
+                    <td style="padding:20px;">
+                      <h2 style="color:#d4b46a;font-size:17px;font-weight:normal;margin:0 0 18px;">
+                        Dina bokningsuppgifter
+                      </h2>
+
+                      <p style="color:#eeeeee;font-size:14px;line-height:1.9;margin:12px 0;">
+                        <span style="color:#d4b46a;">
+                        Film:
+                        </span>
+                        ${escapeHtml(info.movieTitle)}
+                      </p>
+
+                      <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
+                        <span style="color:#d4b46a;">
+                        Dag:
+                        </span>
+                        ${escapeHtml(formattedDate)}
+                      </p>
+
+                      <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
+                        <span style="color:#d4b46a;">
+                        Tid:
+                        </span>
+                        ${escapeHtml(info.viewingStartTime)}
+                      </p>
+
+                      <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
+                        <span style="color:#d4b46a;">
+                        Salong:
+                        </span>
+                        ${escapeHtml(info.theaterName)}
+                      </p>
+
+                      <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
+                        <span style="color:#d4b46a;">
+                        Platser:
+                        </span>
+                        ${info.seatInfo.map(escapeHtml).join(", ")}
+                      </p>
+                      <p style="color:#eeeeee;font-size:14px;line-height:1.9;">
+                        <span style="color:#d4b46a;">
+                        Biljetter:
+                        </span><br>
+                        ${ticketInfo.map(escapeHtml).join("<br>")}
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="text-align:center;padding:0 25px 25px;">
+                <h2 style="color:#d4b46a;font-size:19px;font-weight:normal;">
+                  Varmt välkommen!
+                </h2>
+
+                <p style="color:#cccccc;font-size:14px;line-height:1.9;">
+                  Vi hoppas att du får en fantastisk bioupplevelse!
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="border-top:1px solid #806a3e;padding:22px 25px;text-align:center;">
+                <p style="color:#d4b46a;font-size:14px;">
+                  Avbokning kan göras fram till 60 minuter innan visningen.
+                </p>
+                <p style="color:#d4b46a;font-size:14px;">
+                  Kontakta biografen vid frågor eller om du vill avboka.
+                </p>
+</br></br>
+                <p style="color:#cccccc;font-size:13px;line-height:2;margin:15px 0;">
+                  E-post:
+          
+                  <a href="mailto:filmvisarnagruppc@gmail.com"
+                    style="display:inline-block;
+                    background-color:#d4b46a;
+                    color:#000000 !important;
+                    -webkit-text-fill-color:#000000 !important;
+                    font-weight:bold;
+                    text-decoration:none;
+                    padding:6px 14px;
+                    border-radius:4px;">
+                    <span style="color:#000000 !important;
+                      -webkit-text-fill-color:#000000 !important;">
+                      filmvisarnagruppc@gmail.com
+                    </span>
+                  </a>
+                  
+                  <br><br>
+                  Telefon: 08-123 456 78
+                </p>
+
+                <p style="color:#d4b46a;font-size:13px;margin-top:18px;">
+                  Supportens öppettider
+                </p>
+
+                <p style="color:#cccccc;font-size:13px;">
+                  Mån–Sön: 10:00 – 21:00
+                </p>
+
+                <!-- Stor gyllene avslutningsrad -->
+                <p style="color:#d4b46a;font-size:32px;font-weight:bold;line-height:1.3;margin:35px 0 10px;">
+                  Tack för att du väljer Filmvisarna.
+                </p>
+              </td>
+            </tr>
+
           </table>
         </td>
       </tr>
-
-      <tr>
-        <td style="text-align:center;padding:0 25px 25px;">
-          <h2 style="color:#d4b46a;font-size:19px;font-weight:normal;">
-            Varmt välkommen!
-          </h2>
-
-          <p style="color:#cccccc;font-size:14px;line-height:1.9;">
-            Vi hoppas att du får en fantastisk bioupplevelse!
-          </p>
-        </td>
-      </tr>
-
-      <tr>
-        <td style="border-top:1px solid #806a3e;padding:22px 25px;text-align:center;">
-          <p style="color:#d4b46a;font-size:14px;">
-            Avbokning kan göras fram till 60 minuter innan visningen.
-          </p>
-          <p style="color:#d4b46a;font-size:14px;">
-            Kontakta biografen vid frågor eller om du vill avboka.
-          </p>
-
-          <p style="color:#cccccc;font-size:13px;line-height:2;margin:15px 0;">
-            E-post:
-          <a href="mailto:filmvisarnagruppc@gmail.com"
-            style="color:#7DCBFF !important;
-            -webkit-text-fill-color:#7DCBFF !important;
-            text-decoration:underline;">
-          <span style="color:#7DCBFF !important;
-                 -webkit-text-fill-color:#7DCBFF !important;">
-            filmvisarnagruppc@gmail.com
-          </span>
-        </a>
-        <br>
-          Telefon: 08-123 456 78
-        </p>
-
-          <p style="color:#d4b46a;font-size:13px;margin-top:18px;">
-            Supportens öppettider
-          </p>
-
-          <p style="color:#cccccc;font-size:13px;">
-            Mån–Sön: 10:00 – 21:00
-          </p>
-
-          <p style="color:#777777;font-size:11px;margin-top:25px;">
-            Tack för att du väljer Filmvisarna.
-          </p>
-        </td>
-      </tr>
-
     </table>
   </div>
 `,
@@ -275,7 +297,8 @@ export async function sendBookingConfirmationEmail({
       `E-post: filmvisarnagruppc@gmail.com\n` +
       `Telefon: 08-123 456 78\n` +
       `Öppettider support:\n` +
-      `Mån–Sön: 10:00 – 21:00`,
+      `Mån–Sön: 10:00 – 21:00\n\n` +
+      `Tack för att du väljer Filmvisarna.`,
 
     // Bäddar in loggan direkt i mejlet
     attachments: [
@@ -307,7 +330,7 @@ export async function sendContactEmail({
   const secureValue = process.env.SMTP_SECURE?.trim().toLowerCase();
   const user = process.env.SMTP_USER?.trim();
   const password = process.env.SMTP_PASS;
-  // Läser mailinställningarna från .env, precis som bokningsmailet gör.
+  // Läser mailinställningarna från .env.
 
   if (
     !host ||
@@ -335,7 +358,4 @@ export async function sendContactEmail({
     subject: `Kontaktformulär: ${subject}`,
     text: `Från: ${name} (${email})\n\n${message}`,
   });
-  // Skickar mailet till gruppens adress (CONTACT_TO i .env, annars samma
-  // adress som loggar in). replyTo gör att "Svara" i mailprogrammet går
-  // direkt till personen som skrev, inte till oss själva.
 }
