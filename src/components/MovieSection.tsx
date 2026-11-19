@@ -1,4 +1,3 @@
-
 import { Link, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 
@@ -28,6 +27,21 @@ export default function MovieSection() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [ageFilter, setAgeFilter] = useState("all");
+
+  function formatRuntime(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) {
+    return `${remainingMinutes} minuter`;
+  }
+
+  if (remainingMinutes === 0) {
+    return `${hours} ${hours === 1 ? "timme" : "timmar"}`;
+  }
+
+  return `${hours} h och ${remainingMinutes} minuter`;
+}
 
   useEffect(() => {
     async function fetchMovies() {
@@ -224,7 +238,7 @@ export default function MovieSection() {
 
                 <div className="mt-4 flex flex-wrap gap-2 text-sm text-gray-300">
                   <span className="rounded-md bg-[#3a3a3a] px-3 py-1">
-                    {movie.duration_minutes} min
+                    {formatRuntime(movie.duration_minutes)}
                   </span>
 
                   <span className="rounded-md bg-[#3a3a3a] px-3 py-1">
