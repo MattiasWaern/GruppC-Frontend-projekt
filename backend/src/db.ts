@@ -1,6 +1,6 @@
 import mysql from 'mysql2/promise'
 
-const db = await mysql.createConnection({
+const db = mysql.createPool({
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
   database: process.env.DB_NAME,
@@ -9,6 +9,8 @@ const db = await mysql.createConnection({
   ssl: {
     rejectUnauthorized: false,
   },
+  waitForConnections: true,
+  connectionLimit: 10,
 })
 
 export default db

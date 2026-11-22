@@ -1,40 +1,65 @@
-import db from './db.js'
-import express from 'express'
-import movieRouter from './routes/movies.js'
-import genreRouter from './routes/genres.js'
-import viewingRouter from './routes/viewings.js'
-import theatersRouter from './routes/theater.js'
+import db from "./db.js";
+import express from "express";
+import bookingsRouter from "./routes/bookings.js";
+import movieRouter from "./routes/movies.js";
+import genreRouter from "./routes/genres.js";
+import eventRouter from "./routes/event.js";
+import eventCategoryRouter from "./routes/eventcategory.js";
+import viewingRouter from "./routes/viewings.js";
+import viewingSeatsRouter from "./routes/viewingSeats.js";
+import theatersRouter from "./routes/theater.js";
+import rolesRouter from "./routes/roles.js";
+import userRoutes from "./routes/users.js";
+import ticketRoutes from "./routes/tickets.js";
+import aboutUsRouter from "./routes/aboutUs.js";
+import seatsRouter from "./routes/seats.js";
+import authRoutes from "./routes/auth.js";
+import contactRouter from "./routes/contact.js";
+import holdsRouter from "./routes/holds.js";
 
-// Kan ta bort detta senare
 try {
-  const [rows] = await db.query('SELECT NOW() AS now')
+  const [rows] = await db.query("SELECT NOW() AS now");
 
-  console.log('Databasanslutning fungerar!')
-  console.log(rows)
+  console.log("Databasanslutning fungerar!");
+  console.log(rows);
 } catch (error) {
-  console.error('Kunde inte ansluta till databasen:', error)
+  console.error("Kunde inte ansluta till databasen:", error);
 }
 // ---
 
-
-
-const app = express()
+const app = express();
 const PORT = 3000;
 
-app.use(express.json())
+app.use(express.json());
 
+app.get("/api/health", (_req, res) => {
+  res.json({ message: "API fungerar" });
+});
 
-app.get('/api/health', (_req, res) => {
-  res.json({message: 'API fungerar'})
-})
-
-app.use('/api/movies', movieRouter)
-app.use('/api/genres', genreRouter)
+app.use("/api/bookings", bookingsRouter);
+app.use("/api/movies", movieRouter);
+app.use("/api/genres", genreRouter);
+app.use("/api/events", eventRouter);
+app.use("/api/eventcategory", eventCategoryRouter);
 app.use("/api/viewings", viewingRouter);
-
-app.use('/api/theaters', theatersRouter)
-
+app.use("/api/viewings", viewingSeatsRouter);
+app.use("/api/holds", holdsRouter);
+app.use("/api/admin/roles", rolesRouter);
+app.use("/api/users", userRoutes);
+app.use("/api/theaters", theatersRouter);
+app.use("/api/tickets", ticketRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/about-us", aboutUsRouter);
+app.use("/api/seats", seatsRouter);
+app.use("/api/contact", contactRouter);
 app.listen(PORT, () => {
-  console.log(`Backend Körs på http://localhost:${PORT} `)
-})
-
+  console.log(`Backend Körs på http://localhost:${PORT} `);
+});
+// tar bort utgångna reservationer varje minut
+setInterval(async () => {
+  try {
+    await db.query("DELETE FROM seat_hold WHERE expiresAt <= NOW()");
+  } catch (error) {
+    console.error("Kunde inte städa reservationer:", error);
+  }
+}, 60_000);

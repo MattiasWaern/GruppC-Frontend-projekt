@@ -1,8 +1,108 @@
+import { BrowserRouter, Routes, Route } from "react-router";
+import { AuthProvider } from "./context/AuthContext";
 
-import './App.css'
+import Header from "./components/Header";
+import MobileNavigation from "./components/MobileNavigation";
+import HeroSection from "./components/HeroSection";
+import MovieSection from "./components/MovieSection";
+import BookingBanner from "./components/BookingBanner";
+import Footer from "./components/Footer";
+import CookieBanner from "./components/CookieBanner";
 
-function App() {
-  return <div>App</div>
+import EventPage from './pages/eventPage'
+import { EventDetailPage } from './pages/eventdetailPage'
+import MovieDetails from "./pages/detailPage";
+import BookingConfirmation from "./pages/BookingConfirmation";
+import BookingPage from "./components/bookingSite";
+import CancelBookingPage from "./pages/CancelBookingPage";
+import ContactPage from "./pages/ContactPage";
+import { MoviesPage } from "./pages/MoviesPage";
+
+import AboutUs from './pages/AboutUs';
+
+import SnackPage from "./pages/SnackPage";
+import Terms from "./pages/footer/Terms";
+import Integrity from "./pages/footer/Integrity";
+import Cookies from "./pages/footer/Cookies";
+import Tickets from "./pages/footer/Tickets";
+import Theaters from "./pages/footer/Theaters";
+import Accessibility from "./pages/footer/Accessibility";
+
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import ProfilePage from "./pages/ProfilePage";
+import AddMovie from "./pages/admin/AddMovie";
+import AddEvent from "./pages/admin/AddEvent";
+import AddViewing from "./pages/admin/AddViewing";
+
+function HomePage() {
+  return (
+    <>
+      <HeroSection />
+      <MovieSection />
+      <BookingBanner />
+    </>
+  );
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <div className="min-h-screen bg-[#1d1d1d] text-[#e5ca7a]">
+          {/* Header ligger fixed överst */}
+          <Header />
+
+          {/* Navigation ligger fixed på vänster sida */}
+          <MobileNavigation />
+
+          <CookieBanner />
+
+          {/* Gemensam yta för allt sidinnehåll */}
+          <div className="min-w-0 md:ml-56">
+            <main className="mx-auto min-h-screen w-full max-w-7xl px-4 pb-24 pt-[76px] sm:px-6 md:px-8 md:pb-12">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/movies" element={<MoviesPage />} />
+                <Route path="/movies/:id" element={<MovieDetails />} />
+                <Route path="/bookings/:viewingId" element={<BookingPage />} />
+                // Route for booking confirmation with optional ID parameter
+                <Route path="/booking-confirmation" element={<BookingConfirmation />}/>
+                <Route path="/booking-confirmation/:id" element={<BookingConfirmation />} />
+                <Route path="/cancel-booking" element={<CancelBookingPage />} />
+
+                <Route path="/events" element={<EventPage />} />
+                <Route path="/events/:id" element={<EventDetailPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/movies/new" element={<AddMovie />} />
+                <Route path="/admin/viewings/new" element={<AddViewing />} />
+
+                <Route path="/profil" element={<ProfilePage />} />
+                <Route path="/om-oss" element={<AboutUs />}/>
+                <Route path="/kontakt" element={<ContactPage />} />
+
+                <Route path="/snacks" element={<SnackPage />} />
+
+                <Route path="/villkor" element={<Terms />} />
+                <Route path="/integritet" element={<Integrity />} />
+                <Route path="/cookies" element={<Cookies />} />
+
+                <Route path="/biljetter" element={<Tickets />} />
+                <Route path="/salonger" element={<Theaters />} />
+
+                <Route path="/tillganglighet" element={<Accessibility />} />
+                <Route path="/admin/events/new" element={<AddEvent />} />
+
+              </Routes>
+            </main>
+
+            <Footer />
+          </div>
+        </div>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
